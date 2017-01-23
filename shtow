@@ -17,23 +17,19 @@ shtow_install() {
     local commands=()
 
     cd "$pkg" || return 1
-    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
+    dirs="$(find * -mindepth 1 -type d)"
     for d in $dirs ; do
         commands+=("mkdir -p '$target/$d'")
     done
-    for cmd in "${commands[@]}"; do
-        _runcommands "$cmd"
-    done;
-    local commands=()
 
     local files
-    files="$(find . -type f -or -type l | sed "s|./||")"
+    files="$(find * -type f -or -type l)"
     for f in $files ; do
         local targetf="$target/$f"
         local thisdir
         thisdir=$(dirname "$targetf")
         local relative
-        relative=$(realpath "$f" --relative-to="$thisdir")
+        relative=$(realpath "$f" --relative-to="$thisdir" --canonicalize-missing)
         if [[ ! -f "$targetf" ]] ; then
             commands+=("ln -s '$relative' '$targetf'")
         else
@@ -57,7 +53,7 @@ shtow_uninstall() {
 
     cd "$pkg" || return 1
     local files
-    files="$(find . -type f -or -type l | sed "s|./||")"
+    files="$(find * -type f -or -type l)"
     for f in $files ; do
         local targetf="$target/$f"
         if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
@@ -77,7 +73,7 @@ shtow_uninstall() {
         fi
     done
 
-    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
+    dirs="$(find * -mindepth 1 -type d)"
     for d in $dirs ; do
         commands+=("find '$target/$d' -type d -empty -delete")
     done
