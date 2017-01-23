@@ -55,7 +55,7 @@ if [[ $_ == "$0" ]]; then
     OPTIND=1 
     while getopts "vhD" opt; do
         case "$opt" in
-        h|\?)
+        h)
             shtow_help
             exit 0
             ;;
