@@ -20,6 +20,10 @@ shtow_install() {
     for d in $dirs ; do
         commands+=("mkdir -p '$target/$d'")
     done
+    for cmd in "${commands[@]}"; do
+        _runcommands $cmd
+    done;
+    local commands=()
 
     local files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
