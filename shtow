@@ -2,7 +2,7 @@
 
 shtow_install() {
     local pkg=$1
-    local target=$2
+    local target=$( realpath $2 )
 
     cd "$pkg" || return 1
     dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
@@ -25,7 +25,7 @@ shtow_install() {
 
 shtow_uninstall() {
     local pkg=$1
-    local target=$2
+    local target=$( realpath $2 )
 
     cd "$pkg" || return 1
     local files="$(find . -type f -or -type l | sed "s|./||")"
