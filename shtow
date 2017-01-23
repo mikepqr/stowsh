@@ -5,14 +5,15 @@ _runcommands() {
     if [[ $DRYRUN == 1 ]]; then
         prefix='echo'
     fi
-    eval $prefix $@
+    eval $prefix "$@"
 }
 
 echoerr() { printf "%s\n" "$*" >&2; }
 
 shtow_install() {
     local pkg=$1
-    local target=$( realpath ${2-$HOME} )
+    local target
+    target=$( realpath "${2-$HOME}" )
     local commands=()
 
     cd "$pkg" || return 1
@@ -21,15 +22,18 @@ shtow_install() {
         commands+=("mkdir -p '$target/$d'")
     done
     for cmd in "${commands[@]}"; do
-        _runcommands $cmd
+        _runcommands "$cmd"
     done;
     local commands=()
 
-    local files="$(find . -type f -or -type l | sed "s|./||")"
+    local files
+    files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
-        local thisdir=$(dirname "$targetf")
-        local relative=$(realpath "$f" --relative-to="$thisdir")
+        local thisdir
+        thisdir=$(dirname "$targetf")
+        local relative
+        relative=$(realpath "$f" --relative-to="$thisdir")
         if [[ ! -f "$targetf" ]] ; then
             commands+=("ln -s '$relative' '$targetf'")
         else
@@ -41,17 +45,19 @@ shtow_install() {
         fi
     done
     for cmd in "${commands[@]}"; do
-        _runcommands $cmd
+        _runcommands "$cmd"
     done;
 }
 
 shtow_uninstall() {
     local pkg=$1
-    local target=$( realpath ${2-$HOME} )
+    local target
+    target=$( realpath "${2-$HOME}" )
     local commands=()
 
     cd "$pkg" || return 1
-    local files="$(find . -type f -or -type l | sed "s|./||")"
+    local files
+    files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
         if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
@@ -76,7 +82,7 @@ shtow_uninstall() {
         commands+=("find '$target/$d' -type d -empty -delete")
     done
     for cmd in "${commands[@]}"; do
-        _runcommands $cmd
+        _runcommands "$cmd"
     done;
 }
 
@@ -85,7 +91,7 @@ shtow_help() {
 }
 
 
-if [[ $_ == $0 ]]; then
+if [[ $_ == "$0" ]]; then
     UNINSTALL=0
     DRYRUN=0
     FORCE=0
