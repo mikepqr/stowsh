@@ -17,13 +17,13 @@ shtow_install() {
     local commands=()
 
     cd "$pkg" || return 1
-    dirs="$(find * -mindepth 1 -type d)"
+    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
         commands+=("mkdir -p '$target/$d'")
     done
 
     local files
-    files="$(find * -type f -or -type l)"
+    files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
         local thisdir
@@ -53,7 +53,7 @@ shtow_uninstall() {
 
     cd "$pkg" || return 1
     local files
-    files="$(find * -type f -or -type l)"
+    files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
         if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
@@ -73,7 +73,7 @@ shtow_uninstall() {
         fi
     done
 
-    dirs="$(find * -mindepth 1 -type d)"
+    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
         commands+=("find '$target/$d' -type d -empty -delete")
     done
