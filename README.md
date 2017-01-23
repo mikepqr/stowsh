@@ -36,15 +36,24 @@ this, and an [install script that uses
 
 ```bash
 $ shtow -h
-Usage: shtow [-D] package [target]
+Usage: $0 [-D] [-n] [-f] [-v] PACKAGE [TARGET]
 ```
 
-`target` is the destination directory (`$HOME` by default). The `-D` switch
-uninstalls a package.
+`TARGET` is the destination directory (`$HOME` by default).
 
-When installing a package `shtow` will not overwrite existing files. When
-uninstalling it will not delete files unless they are links pointing to the
-expected place in the package. Any other files are skipped.
+ - `-D` uninstall a package
+ - `-n` dry-run (print what would happen, but don't do anything)
+ - `-v` verbose
+ - `-f` force (overwrite existing files, or delete files that do not link to `package`)
+
+When installing a package `shtow` will never overwrite existing files. Unless
+the `-f` switch is set, `shtow` will abort without making _any_ changes if
+existing files would get in the way. This is done to avoid being left with a
+broken half installed configuration.
+
+When unsintalling a package `shtow` will never delete files that are not
+symlinks to the expected place in the package. Again, unless the `-f` switch is
+set, `shtow` will abort without making _any_ changes if such files are found.
 
 If a package contains directories, and the corresponding directories do not
 exist in the target, `shtow` will create them. When uninstalling a package
