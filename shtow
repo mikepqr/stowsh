@@ -1,13 +1,24 @@
 #!/bin/bash
 
+_runcommands() {
+    local prefix=''
+    if [[ $DRYRUN == 1 ]]; then
+        prefix='echo'
+    fi
+    eval $prefix $@
+}
+
+echoerr() { printf "%s\n" "$*" >&2; }
+
 shtow_install() {
     local pkg=$1
-    local target=${2-$HOME}
+    local target=$( realpath ${2-$HOME} )
+    local commands=()
 
     cd "$pkg" || return 1
     dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
-        mkdir -p "$target/$d"
+        commands+=("mkdir -p '$target/$d'")
     done
 
     local files="$(find . -type f -or -type l | sed "s|./||")"
@@ -16,52 +27,78 @@ shtow_install() {
         local thisdir=$(dirname "$targetf")
         local relative=$(realpath "$f" --relative-to="$thisdir")
         if [[ ! -f "$targetf" ]] ; then
-            ln -s "$relative" "$targetf"
+            commands+=("ln -s '$relative' '$targetf'")
         else
-            echo "$targetf already exists. Skipping."
+            echoerr "$targetf already exists."
+            if [[ ! $FORCE -eq 1 ]]; then
+                echoerr "To FORCE us to continue, use the -f flag";
+                return
+            fi
         fi
     done
+    for cmd in "${commands[@]}"; do
+        _runcommands $cmd
+    done;
 }
 
 shtow_uninstall() {
     local pkg=$1
-    local target=${2-$HOME}
+    local target=$( realpath ${2-$HOME} )
+    local commands=()
 
     cd "$pkg" || return 1
     local files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
         if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
-            rm "$targetf"
+            commands+=("rm '$targetf'")
         elif [[ -f "$targetf" ]] ; then
-            echo "$targetf does not point to to $(realpath "$f"). Skipping."
+            echoerr "$targetf does not point to to $(realpath "$f"). Skipping."
+            if [[ ! $FORCE -eq 1 ]]; then
+                echoerr "To FORCE us to continue, use the -f flag";
+                return
+            fi
         elif [[ ! -f "$targetf" ]] ; then
-            echo "$targetf does not exist. Nothing to do."
+            echoerr "$targetf does not exist. Nothing to do."
+            if [[ ! $FORCE -eq 1 ]]; then
+                echoerr "To FORCE us to continue, use the -f flag";
+                return
+            fi
         fi
     done
 
     dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
-        find "$target/$d" -type d -empty -delete
+        commands+=("find '$target/$d' -type d -empty -delete")
     done
+    for cmd in "${commands[@]}"; do
+        _runcommands $cmd
+    done;
 }
 
 shtow_help() {
     echo "Usage: $0 [-D] package [target]"
 }
 
-if [[ $_ == "$0" ]]; then
-    uninstall=0
+
+if [[ $_ == $0 ]]; then
+    UNINSTALL=0
+    DRYRUN=0
+    FORCE=0
     OPTIND=1 
-    while getopts "vhD" opt; do
+    while getopts "vhDfn" opt; do
         case "$opt" in
         h)
             shtow_help
             exit 0
             ;;
-        D)  uninstall=1
+        D)  UNINSTALL=1
             ;;
-        v)  verbose=1
+        n)  DRYRUN=1
+            ;;
+        f)  FORCE=1
+            ;;
+        v)  VERBOSE=1
             ;;
         esac
     done
@@ -71,15 +108,15 @@ if [[ $_ == "$0" ]]; then
         shtow_help
         exit 1
     fi
-    
+
     pkg=${1}
     target=${2-$HOME}
     
-    if [[ $uninstall -eq 1 ]]; then
-        if [[ $verbose -eq 1 ]] ; then echo "uninstalling $1 from $target" ; fi
+    if [[ $UNINSTALL -eq 1 ]]; then
+        if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $1 from $target" ; fi
         shtow_uninstall "$pkg" "$target"
     else
-        if [[ $verbose -eq 1 ]] ; then echo "installing $1 to $target" ; fi
+        if [[ $VERBOSE -eq 1 ]] ; then echoerr "installing $1 to $target" ; fi
         shtow_install "$pkg" "$target"
     fi
 fi
