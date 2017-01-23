@@ -1,18 +1,20 @@
 #!/bin/bash
 
 shtow_install() {
-    cd "$pkg" || return 1
+    local pkg=$1
+    local target=$2
 
+    cd "$pkg" || return 1
     dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
         mkdir -p "$target/$d"
     done
 
-    files="$(find . -type f -or -type l | sed "s|./||")"
+    local files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
-        targetf="$target/$f"
-        thisdir=$(dirname "$targetf")
-        relative=$(realpath "$f" --relative-to="$thisdir")
+        local targetf="$target/$f"
+        local thisdir=$(dirname "$targetf")
+        local relative=$(realpath "$f" --relative-to="$thisdir")
         if [[ ! -f "$targetf" ]] ; then
             ln -s "$relative" "$targetf"
         else
@@ -22,11 +24,13 @@ shtow_install() {
 }
 
 shtow_uninstall() {
-    cd "$pkg" || return 1
+    local pkg=$1
+    local target=$2
 
-    files="$(find . -type f -or -type l | sed "s|./||")"
+    cd "$pkg" || return 1
+    local files="$(find . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
-        targetf="$target/$f"
+        local targetf="$target/$f"
         if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
             rm "$targetf"
         elif [[ -f "$targetf" ]] ; then
