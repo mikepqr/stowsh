@@ -50,7 +50,7 @@ shtow_help() {
     echo "Usage: $0 [-D] package [target]"
 }
 
-if [[ $_ == $0 ]]; then
+if [[ $_ == "$0" ]]; then
     uninstall=0
     OPTIND=1 
     while getopts "vhD" opt; do
