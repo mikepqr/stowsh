@@ -1,6 +1,6 @@
 #!/bin/bash
 
-run_install() {
+shtow_install() {
     cd "$pkg" || return 1
 
     dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
@@ -21,7 +21,7 @@ run_install() {
     done
 }
 
-run_uninstall() {
+shtow_uninstall() {
     cd "$pkg" || return 1
 
     files="$(find . -type f -or -type l | sed "s|./||")"
@@ -42,7 +42,7 @@ run_uninstall() {
     done
 }
 
-show_help() {
+shtow_help() {
     echo "Usage: $0 [-D] package [target]"
 }
 
@@ -52,7 +52,7 @@ if [[ $_ == $0 ]]; then
     while getopts "vhD" opt; do
         case "$opt" in
         h|\?)
-            show_help
+            shtow_help
             exit 0
             ;;
         D)  uninstall=1
@@ -64,7 +64,7 @@ if [[ $_ == $0 ]]; then
     shift $((OPTIND-1))
     
     if [[ -z ${1} ]] ; then
-        show_help
+        shtow_help
         exit 1
     fi
     
@@ -73,9 +73,9 @@ if [[ $_ == $0 ]]; then
     
     if [[ $uninstall -eq 1 ]]; then
         if [[ $verbose -eq 1 ]] ; then echo "uninstalling $1 from $target" ; fi
-        run_uninstall "$pkg" "$target"
+        shtow_uninstall "$pkg" "$target"
     else
         if [[ $verbose -eq 1 ]] ; then echo "installing $1 to $target" ; fi
-        run_install "$pkg" "$target"
+        shtow_install "$pkg" "$target"
     fi
 fi
