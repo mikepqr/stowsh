@@ -87,7 +87,7 @@ shtow_uninstall() {
 }
 
 shtow_help() {
-    echo "Usage: $0 [-D] package [target]"
+    echo "Usage: $0 [-D] [-n] [-f] [-v] PACKAGE [TARGET]"
 }
 
 

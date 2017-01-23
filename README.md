@@ -36,7 +36,7 @@ this, and an [install script that uses
 
 ```bash
 $ shtow -h
-Usage: $0 [-D] [-n] [-f] [-v] PACKAGE [TARGET]
+Usage: shtow [-D] [-n] [-f] [-v] PACKAGE [TARGET]
 ```
 
 `TARGET` is the destination directory (`$HOME` by default).
