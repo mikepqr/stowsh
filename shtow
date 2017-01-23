@@ -43,37 +43,39 @@ run_uninstall() {
 }
 
 show_help() {
-    echo "Usage: stow [-D] package [target]"
+    echo "Usage: $0 [-D] package [target]"
 }
 
-uninstall=0
-OPTIND=1 
-while getopts "vhD" opt; do
-    case "$opt" in
-    h|\?)
+if [[ $_ == $0 ]]; then
+    uninstall=0
+    OPTIND=1 
+    while getopts "vhD" opt; do
+        case "$opt" in
+        h|\?)
+            show_help
+            exit 0
+            ;;
+        D)  uninstall=1
+            ;;
+        v)  verbose=1
+            ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    
+    if [[ -z ${1} ]] ; then
         show_help
-        exit 0
-        ;;
-    D)  uninstall=1
-        ;;
-    v)  verbose=1
-        ;;
-    esac
-done
-shift $((OPTIND-1))
-
-if [[ -z ${1} ]] ; then
-    show_help
-    exit 1
-fi
-
-pkg=${1}
-target=${2-$HOME}
-
-if [[ $uninstall -eq 1 ]]; then
-    if [[ $verbose -eq 1 ]] ; then echo "uninstalling $1 from $target" ; fi
-    run_uninstall "$pkg" "$target"
-else
-    if [[ $verbose -eq 1 ]] ; then echo "installing $1 to $target" ; fi
-    run_install "$pkg" "$target"
+        exit 1
+    fi
+    
+    pkg=${1}
+    target=${2-$HOME}
+    
+    if [[ $uninstall -eq 1 ]]; then
+        if [[ $verbose -eq 1 ]] ; then echo "uninstalling $1 from $target" ; fi
+        run_uninstall "$pkg" "$target"
+    else
+        if [[ $verbose -eq 1 ]] ; then echo "installing $1 to $target" ; fi
+        run_install "$pkg" "$target"
+    fi
 fi
