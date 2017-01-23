@@ -75,7 +75,7 @@ shtow_uninstall() {
 
     dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
-        commands+=("find '$target/$d' -type d -empty -delete")
+        commands+=("[[ -d '$target/$d' ]] && find '$target/$d' -type d -empty -delete")
     done
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
