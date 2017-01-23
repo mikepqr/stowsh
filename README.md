@@ -36,7 +36,7 @@ this, and an [install script that uses
 
 ```bash
 $ shtow -h
-Usage: stow [-D] package [target]
+Usage: shtow [-D] package [target]
 ```
 
 `target` is the destination directory (`$HOME` by default). The `-D` switch
