@@ -36,7 +36,7 @@ this, and an [install script that uses
 
 ```bash
 $ shtow -h
-Usage: stow [-D] package [target]
+Usage: shtow [-D] package [target]
 ```
 
 `target` is the destination directory (`$HOME` by default). The `-D` switch
@@ -54,6 +54,18 @@ these directories will only be deleted if they are empty.
 
 Put [shtow](https://raw.githubusercontent.com/williamsmj/shtow/master/shtow) in
 your path.
+
+## Bootstrapping
+
+`source` the script and use the `shtow_install` and `shtow_uninstall` functions
+directly. These functions both take one required argument, the package path,
+and one optional argument, the target path (which defaults to `$HOME` if not
+given). e.g.
+
+```
+$ source <(curl https://raw.githubusercontent.com/williamsmj/shtow/master/shtow)
+$ shtow_install ~/.dotfiles/bash
+```
 
 ## What's wrong with GNU stow?
 

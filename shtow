@@ -12,7 +12,7 @@ echoerr() { printf "%s\n" "$*" >&2; }
 
 shtow_install() {
     local pkg=$1
-    local target=$( realpath $2 )
+    local target=$( realpath ${2-$HOME} )
     local commands=()
 
     cd "$pkg" || return 1
@@ -43,7 +43,7 @@ shtow_install() {
 
 shtow_uninstall() {
     local pkg=$1
-    local target=$( realpath $2 )
+    local target=$( realpath ${2-$HOME} )
     local commands=()
 
     cd "$pkg" || return 1
@@ -88,7 +88,7 @@ if [[ $_ == $0 ]]; then
     OPTIND=1 
     while getopts "vhDfn" opt; do
         case "$opt" in
-        h|\?)
+        h)
             shtow_help
             exit 0
             ;;
