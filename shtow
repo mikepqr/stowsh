@@ -39,7 +39,7 @@ shtow_install() {
         else
             echoerr "$targetf already exists."
             if [[ ! $FORCE -eq 1 ]]; then
-                echoerr "To FORCE us to continue, use the -f flag";
+                echoerr "Aborting. To force continue, use the -f flag";
                 return
             fi
         fi
@@ -63,15 +63,15 @@ shtow_uninstall() {
         if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
             commands+=("rm '$targetf'")
         elif [[ -f "$targetf" ]] ; then
-            echoerr "$targetf does not point to to $(realpath "$f"). Skipping."
+            echoerr "$targetf does not point to to $(realpath "$f")."
             if [[ ! $FORCE -eq 1 ]]; then
-                echoerr "To FORCE us to continue, use the -f flag";
+                echoerr "Aborting. To force continue, use the -f flag";
                 return
             fi
         elif [[ ! -f "$targetf" ]] ; then
             echoerr "$targetf does not exist. Nothing to do."
             if [[ ! $FORCE -eq 1 ]]; then
-                echoerr "To FORCE us to continue, use the -f flag";
+                echoerr "Aborting. To force continue, use the -f flag";
                 return
             fi
         fi
