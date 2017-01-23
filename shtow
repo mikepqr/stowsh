@@ -1,0 +1,79 @@
+#!/bin/bash
+
+run_install() {
+    cd "$pkg" || return 1
+
+    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
+    for d in $dirs ; do
+        mkdir -p "$target/$d"
+    done
+
+    files="$(find . -type f -or -type l | sed "s|./||")"
+    for f in $files ; do
+        targetf="$target/$f"
+        thisdir=$(dirname "$targetf")
+        relative=$(realpath "$f" --relative-to="$thisdir")
+        if [[ ! -f "$targetf" ]] ; then
+            ln -s "$relative" "$targetf"
+        else
+            echo "$targetf already exists. Skipping."
+        fi
+    done
+}
+
+run_uninstall() {
+    cd "$pkg" || return 1
+
+    files="$(find . -type f -or -type l | sed "s|./||")"
+    for f in $files ; do
+        targetf="$target/$f"
+        if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
+            rm "$targetf"
+        elif [[ -f "$targetf" ]] ; then
+            echo "$targetf does not point to to $(realpath "$f"). Skipping."
+        elif [[ ! -f "$targetf" ]] ; then
+            echo "$targetf does not exist. Nothing to do."
+        fi
+    done
+
+    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
+    for d in $dirs ; do
+        find "$target/$d" -type d -empty -delete
+    done
+}
+
+show_help() {
+    echo "Usage: stow [-D] package [target]"
+}
+
+uninstall=0
+OPTIND=1 
+while getopts "vhD" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    D)  uninstall=1
+        ;;
+    v)  verbose=1
+        ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [[ -z ${1} ]] ; then
+    show_help
+    exit 1
+fi
+
+pkg=${1}
+target=${2-$HOME}
+
+if [[ $uninstall -eq 1 ]]; then
+    if [[ $verbose -eq 1 ]] ; then echo "uninstalling $1 from $target" ; fi
+    run_uninstall "$pkg" "$target"
+else
+    if [[ $verbose -eq 1 ]] ; then echo "installing $1 to $target" ; fi
+    run_install "$pkg" "$target"
+fi
