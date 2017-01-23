@@ -21,10 +21,6 @@ shtow_install() {
     for d in $dirs ; do
         commands+=("mkdir -p '$target/$d'")
     done
-    for cmd in "${commands[@]}"; do
-        _runcommands "$cmd"
-    done;
-    local commands=()
 
     local files
     files="$(find . -type f -or -type l | sed "s|./||")"
@@ -33,7 +29,7 @@ shtow_install() {
         local thisdir
         thisdir=$(dirname "$targetf")
         local relative
-        relative=$(realpath "$f" --relative-to="$thisdir")
+        relative=$(realpath "$f" --relative-to="$thisdir" --canonicalize-missing)
         if [[ ! -f "$targetf" ]] ; then
             commands+=("ln -s '$relative' '$targetf'")
         else
