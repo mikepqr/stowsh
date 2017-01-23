@@ -55,9 +55,19 @@ When unsintalling a package `shtow` will never delete files that are not
 symlinks to the expected place in the package. Again, unless the `-f` switch is
 set, `shtow` will abort without making _any_ changes if such files are found.
 
+## Subdirectories
+
+`shtow` does not create links to directories.
+
 If a package contains directories, and the corresponding directories do not
-exist in the target, `shtow` will create them. When uninstalling a package
-these directories will only be deleted if they are empty.
+exist in the target, `shtow` will create real directories (not links). 
+
+This choice allows two packages to install files in the same subdirectory, and
+for files that don't belong in your dotfiles (e.g. caches) to live in the same
+directory without being added to your dotfiles `.gitignore`.
+
+When uninstalling a package subdirectories will only be deleted if they are
+empty.
 
 ## Installation
 
@@ -79,9 +89,10 @@ $ shtow_install ~/.dotfiles/bash
 ## What's wrong with GNU stow?
 
 `shtow` is a short, cross-platform bash script without dependencies. `stow` is
-implemented as a Perl module, which means Perl is a dependency. Also I am not
-smart enough to install Perl modules.
+implemented as a Perl module. Neither of us are smart enough to install Perl
+modules, and we'd rather not have Perl as a dependency.
 
-## Author
+## Authors
 
-[Mike Lee Williams](http://mike.place). Issues and PRs welcome.
+[Mike Lee Williams](https://github.com/williamsmj/) and [Micha
+Gorelick](https://github.com/mynameisfiber/). Issues and PRs welcome.
