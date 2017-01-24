@@ -55,6 +55,13 @@ When unsintalling a package `stowsh` will never delete files that are not
 symlinks to the expected place in the package. Again, unless the `-f` switch is
 set, `stowsh` will abort without making _any_ changes if such files are found.
 
+`stowsh` will only delete files in the target that correspond to files in the
+package. In other words, for uninstallation purposes, the package is the
+manifest. One important consequence of this is that if you install package,
+then delete a file from the package, then use `stowsh` to uninstall the
+package, your target directory will be left with a broken symlink to the
+package.
+
 ## Subdirectories
 
 `stowsh` does not create links to directories.
@@ -63,8 +70,9 @@ If a package contains directories, and the corresponding directories do not
 exist in the target, `stowsh` will create real directories (not links). 
 
 This choice allows two packages to install files in the same subdirectory, and
-for files that don't belong in your dotfiles (e.g. caches) to live in the same
-directory without being added to your dotfiles `.gitignore`.
+files that don't belong in your dotfiles repo (e.g. caches) to be added to
+those subdirectories without also being added to your dotfiles repo's
+`.gitignore`.
 
 When uninstalling a package subdirectories will only be deleted if they are
 empty.
