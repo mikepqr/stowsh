@@ -13,7 +13,7 @@ echoerr() { printf "%s\n" "$*" >&2; }
 stowsh_install() {
     local pkg=$1
     local target
-    target=$( realpath "${2-$HOME}" )
+    target=$( realpath "${2-$PWD}" )
     local commands=()
 
     cd "$pkg" || return 1
@@ -48,7 +48,7 @@ stowsh_install() {
 stowsh_uninstall() {
     local pkg=$1
     local target
-    target=$( realpath "${2-$HOME}" )
+    target=$( realpath "${2-$PWD}" )
     local commands=()
 
     cd "$pkg" || return 1
@@ -83,7 +83,7 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-f] [-v] PACKAGE [TARGET]"
+    echo "Usage: $0 [-D] [-n] [-s] [-v] PACKAGE [TARGET]"
 }
 
 
@@ -116,7 +116,7 @@ if [[ $_ == "$0" ]]; then
     fi
 
     pkg=${1}
-    target=${2-$HOME}
+    target=${2-$PWD}
     
     if [[ $UNINSTALL -eq 1 ]]; then
         if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $1 from $target" ; fi
