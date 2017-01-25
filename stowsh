@@ -92,7 +92,7 @@ if [[ $_ == "$0" ]]; then
     DRYRUN=0
     SKIP=0
     OPTIND=1 
-    while getopts "vhDfn" opt; do
+    while getopts "vhDsn" opt; do
         case "$opt" in
         h)
             stowsh_help
