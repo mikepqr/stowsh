@@ -16,22 +16,20 @@ $ tree -a
 .
 ├── .bash_history
 └── .dotfiles
-    └── pkg
-        ├── .bash_profile
-        └── .vimrc
+    ├── .bash_profile
+    └── .vimrc
 ```
 Install the package (create symlinks) using `stowsh`
 ```
-$ stowsh ~/.dotfiles/pkg 
+$ stowsh ~/.dotfiles
 $ tree -a
 .
 ├── .bash_history
-├── .bash_profile -> .dotfiles/pkg/.bash_profile
+├── .bash_profile -> .dotfiles/.bash_profile
 ├── .dotfiles
-│   └── pkg
-│       ├── .bash_profile
-│       └── .vimrc
-└── .vimrc -> .dotfiles/pkg/.vimrc
+│   ├── .bash_profile
+│   └── .vimrc
+└── .vimrc -> .dotfiles/.vimrc
 ```
 Uninstall the package (delete symlinks) using `stowsh`
 ```
