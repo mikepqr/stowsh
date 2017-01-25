@@ -44,20 +44,18 @@ Usage: stowsh [-D] [-n] [-f] [-v] PACKAGE [TARGET]
  - `-D` uninstall a package
  - `-n` dry-run (print what would happen, but don't do anything)
  - `-v` verbose
- - `-f` force (overwrite existing files, or delete files that do not link to `package`)
+ - `-s` skip (skip install or uninstall errors rather than abort)
 
-When installing a package `stowsh` will never overwrite existing files. Unless
-the `-f` switch is set, `stowsh` will abort without making _any_ changes if
-existing files would get in the way. This is done to avoid being left with a
-broken half installed configuration.
+When installing a package `stowsh` will never overwrite existing files. When
+unsintalling a package `stowsh` will never delete files that are not symlinks
+to the expected place in the package. 
 
-When unsintalling a package `stowsh` will never delete files that are not
-symlinks to the expected place in the package. Again, unless the `-f` switch is
-set, `stowsh` will abort without making _any_ changes if such files are found.
+By default `stowsh` will abort without making _any_ changes if either of these
+errors occurs. This is done to avoid being left with a broken half installed
+configuration. The `-s` flag can be used to force stowsh to install/uninstall
+as much as possible.
 
-`stowsh` will only delete files in the target that correspond to files in the
-package. In other words, for uninstallation purposes, the package is the
-manifest. One important consequence of this is that if you install package,
+One important consequence of this behaviour is that if you install package,
 then delete a file from the package, then use `stowsh` to uninstall the
 package, your target directory will be left with a broken symlink to the
 package.
@@ -66,15 +64,35 @@ package.
 
 `stowsh` does not create links to directories.
 
-If a package contains directories, and the corresponding directories do not
-exist in the target, `stowsh` will create real directories (not links). 
+If a package contains subdirectories, and the corresponding directories do not
+exist in the target, `stowsh` will create real directories (not links). So:
+
+```
+$ cd ~
+$ tree -a .dotfiles/bin
+.dotfiles/bin
+└── .config
+    ├── a.conf
+    ├── b.conf
+    ├── c.conf
+    └── d.conf
+$ stowsh .dotfiles/bin
+$ tree -a ~/bin
+~/bin
+├── a.conf -> ../.dotfiles/bin/bin/a.conf
+├── b.conf -> ../.dotfiles/bin/bin/b.conf
+├── c.conf -> ../.dotfiles/bin/bin/c.conf
+└── d.conf -> ../.dotfiles/bin/bin/d.conf
+```
+
+Note `~/bin` is a real directory, not a link.
 
 This choice allows two packages to install files in the same subdirectory, and
 files that don't belong in your dotfiles repo (e.g. caches) to be added to
-those subdirectories without also being added to your dotfiles repo's
-`.gitignore`.
+those subdirectories without also being added to your dotfiles repo or its
+`.gitignore` file.
 
-When uninstalling a package subdirectories will only be deleted if they are
+When uninstalling a package, subdirectories will only be deleted if they are
 empty.
 
 ## Installation

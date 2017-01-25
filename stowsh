@@ -34,8 +34,8 @@ stowsh_install() {
             commands+=("ln -s '$relative' '$targetf'")
         else
             echoerr "$targetf already exists."
-            if [[ ! $FORCE -eq 1 ]]; then
-                echoerr "Aborting. To force continue, use the -f flag";
+            if [[ ! $SKIP -eq 1 ]]; then
+                echoerr "Aborting. Rerun with the -s flag to skip errors.";
                 return
             fi
         fi
@@ -60,14 +60,14 @@ stowsh_uninstall() {
             commands+=("rm '$targetf'")
         elif [[ -f "$targetf" ]] ; then
             echoerr "$targetf does not point to to $(realpath "$f")."
-            if [[ ! $FORCE -eq 1 ]]; then
-                echoerr "Aborting. To force continue, use the -f flag";
+            if [[ ! $SKIP -eq 1 ]]; then
+                echoerr "Aborting. Rerun with the -s flag to skip errors.";
                 return
             fi
         elif [[ ! -f "$targetf" ]] ; then
             echoerr "$targetf does not exist. Nothing to do."
-            if [[ ! $FORCE -eq 1 ]]; then
-                echoerr "Aborting. To force continue, use the -f flag";
+            if [[ ! $SKIP -eq 1 ]]; then
+                echoerr "Aborting. Rerun with the -s flag to skip errors.";
                 return
             fi
         fi
@@ -90,7 +90,7 @@ stowsh_help() {
 if [[ $_ == "$0" ]]; then
     UNINSTALL=0
     DRYRUN=0
-    FORCE=0
+    SKIP=0
     OPTIND=1 
     while getopts "vhDfn" opt; do
         case "$opt" in
@@ -102,7 +102,7 @@ if [[ $_ == "$0" ]]; then
             ;;
         n)  DRYRUN=1
             ;;
-        f)  FORCE=1
+        s)  SKIP=1
             ;;
         v)  VERBOSE=1
             ;;
