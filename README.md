@@ -5,8 +5,14 @@ A shell script to install and uninstall dotfiles using symlinks.
 
 ## Installation
 
-Put [stowsh](https://raw.githubusercontent.com/williamsmj/stowsh/master/stowsh) in
-your path.
+Put [stowsh](https://raw.githubusercontent.com/williamsmj/stowsh/master/stowsh)
+in your path.
+
+Note: `find` and `realpath` must be GNU versions. This is likely already true
+if you're on a Linux system, but you may need to `brew install findutils
+coreutils` if you're on macOS (and follow the instructions to change your
+`$PATH`). [There is an open issue to remove this
+dependency](https://github.com/williamsmj/stowsh/issues/13).
 
 ## Quickstart
 
