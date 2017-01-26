@@ -1,0 +1,109 @@
+#!/bin/bash
+
+mkdir -p testing
+cd testing || exit
+
+cat > basic.uninstall.correct.tree <<END
+.
+├── .bash_history
+└── .dotfiles
+    ├── .bash_profile
+    └── .vimrc
+
+1 directory, 3 files
+END
+
+cat > basic.install.correct.tree <<END
+.
+├── .bash_history
+├── .bash_profile -> .dotfiles/.bash_profile
+├── .dotfiles
+│   ├── .bash_profile
+│   └── .vimrc
+└── .vimrc -> .dotfiles/.vimrc
+
+1 directory, 5 files
+END
+
+cat > mixed.uninstall.correct.tree <<END
+.
+├── .conf
+│   └── conf.cache
+└── .dotfiles
+    ├── pkg1
+    │   ├── .conf
+    │   │   ├── a.conf
+    │   │   ├── b.conf
+    │   │   └── c.conf
+    │   └── bin
+    │       └── script1
+    └── pkg2
+        └── bin
+            └── script2
+
+7 directories, 6 files
+END
+
+cat > mixed.install.correct.tree <<END
+.
+├── .conf
+│   ├── a.conf -> ../.dotfiles/pkg1/.conf/a.conf
+│   ├── b.conf -> ../.dotfiles/pkg1/.conf/b.conf
+│   ├── c.conf -> ../.dotfiles/pkg1/.conf/c.conf
+│   └── conf.cache
+├── .dotfiles
+│   ├── pkg1
+│   │   ├── .conf
+│   │   │   ├── a.conf
+│   │   │   ├── b.conf
+│   │   │   └── c.conf
+│   │   └── bin
+│   │       └── script1
+│   └── pkg2
+│       └── bin
+│           └── script2
+└── bin
+    ├── script1 -> ../.dotfiles/pkg1/bin/script1
+    └── script2 -> ../.dotfiles/pkg2/bin/script2
+
+8 directories, 11 files
+END
+
+FAIL=0
+
+mkdir -p basic/.dotfiles
+cd basic || exit
+touch .bash_history
+touch .dotfiles/.bash_profile
+touch .dotfiles/.vimrc
+../../stowsh .dotfiles
+tree -a -n . -o ../basic.install.tree
+../../stowsh -D .dotfiles
+tree -a -n . -o ../basic.uninstall.tree
+cd .. || exit
+diff -q basic.install.tree basic.install.correct.tree || FAIL=1
+diff -q basic.uninstall.tree basic.uninstall.correct.tree || FAIL=1
+
+mkdir -p mixed/.dotfiles/pkg1/.conf
+mkdir -p mixed/.dotfiles/pkg1/bin
+touch mixed/.dotfiles/pkg1/.conf/a.conf
+touch mixed/.dotfiles/pkg1/.conf/b.conf
+touch mixed/.dotfiles/pkg1/.conf/c.conf
+touch mixed/.dotfiles/pkg1/bin/script1
+mkdir -p mixed/.dotfiles/pkg2/bin/
+touch mixed/.dotfiles/pkg2/bin/script2
+mkdir -p mixed/.conf
+touch mixed/.conf/conf.cache
+cd mixed || exit
+../../stowsh .dotfiles/pkg1
+../../stowsh .dotfiles/pkg2
+tree -a -n . -o ../mixed.install.tree
+../../stowsh -D .dotfiles/pkg1
+../../stowsh -D .dotfiles/pkg2
+tree -a -n . -o ../mixed.uninstall.tree
+cd .. || exit
+diff -q mixed.install.tree mixed.install.correct.tree || FAIL=1
+diff -q mixed.uninstall.tree mixed.uninstall.correct.tree || FAIL=1
+cd .. || exit
+
+if [[ FAIL -eq 0 ]] ; then rm -rf testing ; fi
