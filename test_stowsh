@@ -1,7 +1,8 @@
 #!/bin/bash
 
-mkdir -p testing
-cd testing || exit
+testdir=testing
+mkdir -p "$testdir"
+cd "$testdir" || exit
 
 cat > basic.uninstall.correct.tree <<END
 .
@@ -104,6 +105,5 @@ tree -a -n . -o ../mixed.uninstall.tree
 cd .. || exit
 diff -q mixed.install.tree mixed.install.correct.tree || FAIL=1
 diff -q mixed.uninstall.tree mixed.uninstall.correct.tree || FAIL=1
-cd .. || exit
 
-if [[ FAIL -eq 0 ]] ; then rm -rf testing ; fi
+if [[ FAIL -eq 0 ]] ; then rm -rf "$testdir" ; fi
