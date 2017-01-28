@@ -106,4 +106,5 @@ cd .. || exit
 diff -q mixed.install.tree mixed.install.correct.tree || FAIL=1
 diff -q mixed.uninstall.tree mixed.uninstall.correct.tree || FAIL=1
 
+cd .. || exit
 if [[ FAIL -eq 0 ]] ; then rm -rf "$testdir" ; fi

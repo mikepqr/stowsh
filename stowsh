@@ -8,28 +8,62 @@ _runcommands() {
     eval $prefix "$@"
 }
 
-echoerr() { printf "%s\n" "$*" >&2; }
+echoerr() {
+    printf "%s\n" "$*" >&2;
+}
+
+deperr() {
+    echoerr "stowsh requires $1"
+}
+
+stowsh_setpaths() {
+    if command -v grealpath >/dev/null 2>&1; then
+        rpcmd="grealpath"
+    elif command -v realpath >/dev/null 2>&1; then
+        rpcmd="realpath"
+    else
+        deperr "GNU coreutils"
+        return 1
+    fi
+    if ! strings "$(which "$rpcmd")" | grep -q "GNU coreutils" ; then
+        deperr "GNU coreutils"
+        return 1
+    fi
+    if command -v gfind >/dev/null 2>&1; then
+        findcmd="gfind"
+    elif command -v find >/dev/null 2>&1; then
+        findcmd="find"
+    else
+        deperr "GNU findutils"
+        return 1
+    fi
+    if ! strings "$(which "$findcmd")" | grep -q "GNU findutils" ; then
+        deperr "GNU findutils"
+        return 1
+    fi
+}
 
 stowsh_install() {
+    stowsh_setpaths || return 1
     local pkg=$1
     local target
-    target=$( realpath "${2-$PWD}" )
+    target=$( "$rpcmd" "${2-$PWD}" )
     local commands=()
 
     cd "$pkg" || return 1
-    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
+    dirs="$($findcmd . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
         commands+=("mkdir -p '$target/$d'")
     done
 
     local files
-    files="$(find . -type f -or -type l | sed "s|./||")"
+    files="$($findcmd . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
         local thisdir
         thisdir=$(dirname "$targetf")
         local relative
-        relative=$(realpath "$f" --relative-to="$thisdir" --canonicalize-missing)
+        relative=$($rpcmd "$f" --relative-to="$thisdir" --canonicalize-missing)
         if [[ ! -f "$targetf" ]] ; then
             commands+=("ln -s '$relative' '$targetf'")
         else
@@ -46,17 +80,18 @@ stowsh_install() {
 }
 
 stowsh_uninstall() {
+    stowsh_setpaths || return 1
     local pkg=$1
     local target
-    target=$( realpath "${2-$PWD}" )
+    target=$( "$rpcmd" "${2-$PWD}" )
     local commands=()
 
     cd "$pkg" || return 1
     local files
-    files="$(find . -type f -or -type l | sed "s|./||")"
+    files="$($findcmd . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
-        if [[ $(realpath "$targetf") == $(realpath "$f") ]] ; then
+        if [[ $($rpcmd "$targetf") == $(realpath "$f") ]] ; then
             commands+=("rm '$targetf'")
         elif [[ -f "$targetf" ]] ; then
             echoerr "$targetf does not point to to $(realpath "$f")."
@@ -73,9 +108,9 @@ stowsh_uninstall() {
         fi
     done
 
-    dirs="$(find . -mindepth 1 -type d | sed "s|./||")"
+    dirs="$($findcmd . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
-        commands+=("[[ -d '$target/$d' ]] && find '$target/$d' -type d -empty -delete")
+        commands+=("[[ -d '$target/$d' ]] && $findcmd '$target/$d' -type d -empty -delete")
     done
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
