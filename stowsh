@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 _runcommands() {
     local prefix=''
@@ -121,8 +121,7 @@ stowsh_help() {
     echo "Usage: $0 [-D] [-n] [-s] [-v] PACKAGE [TARGET]"
 }
 
-
-if [[ $_ == "$0" ]]; then
+if [ "$0" = "$BASH_SOURCE" ]; then
     UNINSTALL=0
     DRYRUN=0
     SKIP=0
