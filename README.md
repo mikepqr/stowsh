@@ -10,7 +10,8 @@ in your path.
 
 Note: `stowsh` depends on GNU coreutils and findutils. These are likely already
 installed on Linux systems. On macOS you should `brew install findutils
-coreutils`).
+coreutils` (or submit a PR to [remove these
+dependencies](https://github.com/williamsmj/stowsh/issues/14)!).
 
 ## Quickstart
 
@@ -154,7 +155,6 @@ $ tree -a -I '.dotfiles'
 implemented as a Perl module. Neither of us are smart enough to install Perl
 modules, and we'd rather not have Perl as a dependency.
 
-## Authors
+## Author
 
-[Mike Lee Williams](https://github.com/williamsmj/) and [Micha
-Gorelick](https://github.com/mynameisfiber/). Issues and PRs welcome.
+[Mike Lee Williams](https://github.com/williamsmj/). Issues and PRs welcome.
