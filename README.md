@@ -15,21 +15,20 @@ dependencies](https://github.com/williamsmj/stowsh/issues/14)!).
 
 ## Quickstart
 
-Create a package (a directory of dotfiles):
+Create a package (a directory of dotfiles, `~/.dotfiles` in this example):
 ```bash
+$ cd
 $ tree -a
 .
-├── .bash_history
 └── .dotfiles
     ├── .bash_profile
     └── .vimrc
 ```
-Install the package (create symlinks) using `stowsh`
+Install the package (create symlinks in the current directory) using `stowsh`
 ```
 $ stowsh ~/.dotfiles
 $ tree -a
 .
-├── .bash_history
 ├── .bash_profile -> .dotfiles/.bash_profile
 ├── .dotfiles
 │   ├── .bash_profile
@@ -38,7 +37,7 @@ $ tree -a
 ```
 Uninstall the package (delete symlinks) using `stowsh`
 ```
-$ stowsh -D .dotfiles/pkg
+$ stowsh -D ~/.dotfiles
 ```
 
 ## Details and options
