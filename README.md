@@ -151,8 +151,8 @@ $ tree -a -I '.dotfiles'
 ## What's wrong with GNU stow?
 
 `stowsh` is a short, cross-platform bash script without dependencies. `stow` is
-implemented as a Perl module. Neither of us are smart enough to install Perl
-modules, and we'd rather not have Perl as a dependency.
+implemented as a Perl module. I'm not smart enough to install Perl modules, and
+I'd rather not have Perl as a dependency.
 
 ## Author
 
