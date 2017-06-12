@@ -50,6 +50,7 @@ stowsh_install() {
     target=$( "$rpcmd" "${2-$PWD}" )
     local commands=()
 
+    (
     cd "$pkg" || return 1
     dirs="$($findcmd . -mindepth 1 -type d | sed "s|./||")"
     for d in $dirs ; do
@@ -77,6 +78,7 @@ stowsh_install() {
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
     done;
+    )
 }
 
 stowsh_uninstall() {
@@ -86,6 +88,7 @@ stowsh_uninstall() {
     target=$( "$rpcmd" "${2-$PWD}" )
     local commands=()
 
+    (
     cd "$pkg" || return 1
     local files
     files="$($findcmd . -type f -or -type l | sed "s|./||")"
@@ -115,21 +118,23 @@ stowsh_uninstall() {
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
     done;
+    )
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-v] PACKAGE [TARGET]"
+    echo "Usage: $0 [-D] [-n] [-s] [-v] [-t TARGET] PACKAGES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
     UNINSTALL=0
     DRYRUN=0
     SKIP=0
+    TARGET="$PWD"
     PACKAGES=()
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsn" opt; do
+            while getopts ":vhDsnt:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -143,6 +148,8 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                         ;;
                     v)  VERBOSE=1
                         ;;
+                    t)  TARGET="$OPTARG"
+                        ;;
                     *)  echo "'$OPTARG' is an invalid option/flag"
                         exit 1
                         ;;
@@ -155,19 +162,19 @@ if [ "$0" = "$BASH_SOURCE" ]; then
         fi
     done
 
-    if [[ -z "${PACKAGES[0]}" ]] ; then
+    if [[ ${#PACKAGES[@]} -eq 0 ]] ; then
         stowsh_help
         exit 1
     fi
 
-    pkg=${PACKAGES[0]}
-    target=${PACKAGES[1]-$PWD}
-    
-    if [[ $UNINSTALL -eq 1 ]]; then
-        if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $pkg from $target" ; fi
-        stowsh_uninstall "$pkg" "$target"
-    else
-        if [[ $VERBOSE -eq 1 ]] ; then echoerr "installing $pkg to $target" ; fi
-        stowsh_install "$pkg" "$target"
-    fi
+    for i in ${!PACKAGES[*]}; do
+        pkg=${PACKAGES[$i]}
+        if [[ $UNINSTALL -eq 1 ]]; then
+            if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $pkg from $TARGET" ; fi
+            stowsh_uninstall "$pkg" "$TARGET"
+        else
+            if [[ $VERBOSE -eq 1 ]] ; then echoerr "installing $pkg to $TARGET" ; fi
+            stowsh_install "$pkg" "$TARGET"
+        fi
+    done
 fi
