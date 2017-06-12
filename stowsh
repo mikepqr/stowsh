@@ -125,38 +125,49 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     UNINSTALL=0
     DRYRUN=0
     SKIP=0
-    OPTIND=1 
-    while getopts "vhDsn" opt; do
-        case "$opt" in
-        h)
-            stowsh_help
-            exit 0
-            ;;
-        D)  UNINSTALL=1
-            ;;
-        n)  DRYRUN=1
-            ;;
-        s)  SKIP=1
-            ;;
-        v)  VERBOSE=1
-            ;;
-        esac
+    PACKAGES=()
+    while [[ "$@" ]]; do
+        if [[ $1 =~ ^- ]]; then
+            OPTIND=1
+            while getopts ":vhDsn" opt; do
+                case $opt in
+                    h)
+                        stowsh_help
+                        exit 0
+                        ;;
+                    D)  UNINSTALL=1
+                        ;;
+                    n)  DRYRUN=1
+                        ;;
+                    s)  SKIP=1
+                        ;;
+                    v)  VERBOSE=1
+                        ;;
+                    *)  echo "'$OPTARG' is an invalid option/flag"
+                        exit 1
+                        ;;
+                esac
+            done
+            shift $((OPTIND-1))
+        else
+            PACKAGES+=("$1")
+            shift
+        fi
     done
-    shift $((OPTIND-1))
-    
-    if [[ -z ${1} ]] ; then
+
+    if [[ -z "${PACKAGES[0]}" ]] ; then
         stowsh_help
         exit 1
     fi
 
-    pkg=${1}
-    target=${2-$PWD}
+    pkg=${PACKAGES[0]}
+    target=${PACKAGES[1]-$PWD}
     
     if [[ $UNINSTALL -eq 1 ]]; then
-        if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $1 from $target" ; fi
+        if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $pkg from $target" ; fi
         stowsh_uninstall "$pkg" "$target"
     else
-        if [[ $VERBOSE -eq 1 ]] ; then echoerr "installing $1 to $target" ; fi
+        if [[ $VERBOSE -eq 1 ]] ; then echoerr "installing $pkg to $target" ; fi
         stowsh_install "$pkg" "$target"
     fi
 fi
