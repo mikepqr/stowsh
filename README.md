@@ -48,8 +48,7 @@ directory, creating subdirectories as necessary.
 
 ```bash
 $ stowsh -h
-Usage: stowsh [-D] [-n] [-s] [-v[v]] PACKAGE [TARGET]
-```
+Usage: stowsh [-D] [-n] [-s] [-v[v]] [-t TARGET] PACKAGES...
 
 `TARGET` is the destination directory (current directory by default).
 
@@ -114,8 +113,7 @@ $ tree -a
     └── pkg2
         └── bin
             └── script2
-$ stowsh .dotfiles/pkg1
-$ stowsh .dotfiles/pkg2
+$ stowsh .dotfiles/pkg1 .dotfiles/pkg2
 $ tree -a -I '.dotfiles'  # exclude ./.dotfiles from tree listing
 .
 ├── .conf
@@ -140,8 +138,7 @@ When uninstalling a package, subdirectories will only be deleted if they are
 empty. So:
 
 ```bash
-$ stowsh -D .dotfiles/pkg1
-$ stowsh -D .dotfiles/pkg2
+$ stowsh -D .dotfiles/pkg1 .dotfiles/pkg2
 $ tree -a -I '.dotfiles'
 .
 └── .conf
