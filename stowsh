@@ -2,10 +2,12 @@
 
 _runcommands() {
     local prefix=''
-    if [[ $DRYRUN == 1 ]]; then
-        prefix='echo'
+    if [[ $DRYRUN == 1 ]] || [[ $VERBOSE -gt 1 ]]; then
+        echo "$@"
     fi
-    eval $prefix "$@"
+    if [[ $DRYRUN != 1 ]]; then
+        eval "$@"
+    fi
 }
 
 echoerr() {
@@ -122,7 +124,7 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-v] [-t TARGET] PACKAGES..."
+    echo "Usage: $0 [-D] [-n] [-s] [-v[v]] [-t TARGET] PACKAGES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
@@ -146,7 +148,7 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                         ;;
                     s)  SKIP=1
                         ;;
-                    v)  VERBOSE=1
+                    v)  VERBOSE=$((VERBOSE + 1))
                         ;;
                     t)  TARGET="$OPTARG"
                         ;;
@@ -170,10 +172,10 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     for i in ${!PACKAGES[*]}; do
         pkg=${PACKAGES[$i]}
         if [[ $UNINSTALL -eq 1 ]]; then
-            if [[ $VERBOSE -eq 1 ]] ; then echoerr "uninstalling $pkg from $TARGET" ; fi
+            if [[ $VERBOSE -gt 0 ]] ; then echoerr "uninstalling $pkg from $TARGET" ; fi
             stowsh_uninstall "$pkg" "$TARGET"
         else
-            if [[ $VERBOSE -eq 1 ]] ; then echoerr "installing $pkg to $TARGET" ; fi
+            if [[ $VERBOSE -gt 0 ]] ; then echoerr "installing $pkg to $TARGET" ; fi
             stowsh_install "$pkg" "$TARGET"
         fi
     done
