@@ -49,6 +49,7 @@ directory, creating subdirectories as necessary.
 ```bash
 $ stowsh -h
 Usage: stowsh [-D] [-n] [-s] [-v[v]] [-t TARGET] PACKAGES...
+```
 
 `TARGET` is the destination directory (current directory by default).
 
