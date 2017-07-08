@@ -77,9 +77,9 @@ cd basic || exit
 touch .bash_history
 touch .dotfiles/.bash_profile
 touch .dotfiles/.vimrc
-../../stowsh .dotfiles
+../../stowsh -vv .dotfiles
 tree -a -n . -o ../basic.install.tree
-../../stowsh -D .dotfiles
+../../stowsh -vv -D .dotfiles
 tree -a -n . -o ../basic.uninstall.tree
 cd .. || exit
 diff -q basic.install.tree basic.install.correct.tree || FAIL=1
@@ -96,11 +96,11 @@ touch mixed/.dotfiles/pkg2/bin/script2
 mkdir -p mixed/.conf
 touch mixed/.conf/conf.cache
 cd mixed || exit
-../../stowsh .dotfiles/pkg1
-../../stowsh .dotfiles/pkg2
+../../stowsh -vv .dotfiles/pkg1
+../../stowsh -vv .dotfiles/pkg2
 tree -a -n . -o ../mixed.install.tree
-../../stowsh -D .dotfiles/pkg1
-../../stowsh -D .dotfiles/pkg2
+../../stowsh -vv -D .dotfiles/pkg1
+../../stowsh -vv -D .dotfiles/pkg2
 tree -a -n . -o ../mixed.uninstall.tree
 cd .. || exit
 diff -q mixed.install.tree mixed.install.correct.tree || FAIL=1
