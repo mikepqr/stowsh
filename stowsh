@@ -172,10 +172,10 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     for i in ${!PACKAGES[*]}; do
         pkg=${PACKAGES[$i]}
         if [[ $UNINSTALL -eq 1 ]]; then
-            if [[ $VERBOSE -gt 0 ]] ; then echoerr "uninstalling $pkg from $TARGET" ; fi
+            if [[ $VERBOSE -gt 0 ]] ; then echoerr "Uninstalling $pkg from $TARGET" ; fi
             stowsh_uninstall "$pkg" "$TARGET"
         else
-            if [[ $VERBOSE -gt 0 ]] ; then echoerr "installing $pkg to $TARGET" ; fi
+            if [[ $VERBOSE -gt 0 ]] ; then echoerr "Installing $pkg to $TARGET" ; fi
             stowsh_install "$pkg" "$TARGET"
         fi
     done
