@@ -1,0 +1,16 @@
+#!/bin/bash
+
+fail=0
+echo "Testing $test..."
+rm -rf "$test/dest"
+cp -r "$test/uninstalled" "$test/dest"
+stowsh -vv -t "$test/dest" "$test/pkg"
+diff -qr "$test/dest" "$test/installed" || fail=1
+stowsh -vv -D -t "$test/dest" "$test/pkg"
+diff -qr "$test/dest" "$test/uninstalled" || fail=1
+if [[ $fail == 1 ]] ; then
+    echo "FAIL"
+else
+    echo "OK"
+    rm -rf "$test/dest"
+fi

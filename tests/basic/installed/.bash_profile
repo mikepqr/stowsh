@@ -1,0 +1,1 @@
+../pkg/.bash_profile

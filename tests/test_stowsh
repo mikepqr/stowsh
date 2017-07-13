@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd "$(dirname "$0")" || exit
+tests="$(find . -maxdepth 1 ! -name '.*' -type d | sed "s|./||")"
+
+for test in $tests ; do
+    echo "$test"
+    (cd "$test" && ./run)
+done
+
