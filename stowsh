@@ -17,6 +17,14 @@ deperr() {
     echoerr "stowsh requires $1"
 }
 
+isgnu() {
+    if $1 --version >/dev/null 2>&1 ; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 stowsh_setpaths() {
     if command -v grealpath >/dev/null 2>&1; then
         rpcmd="grealpath"
@@ -26,7 +34,7 @@ stowsh_setpaths() {
         deperr "GNU coreutils"
         return 1
     fi
-    if ! strings "$(which "$rpcmd")" | grep -q "GNU coreutils" ; then
+    if isgnu $rpcmd; then
         deperr "GNU coreutils"
         return 1
     fi
@@ -38,7 +46,7 @@ stowsh_setpaths() {
         deperr "GNU findutils"
         return 1
     fi
-    if ! strings "$(which "$findcmd")" | grep -q "GNU findutils" ; then
+    if isgnu $findcmd; then
         deperr "GNU findutils"
         return 1
     fi
