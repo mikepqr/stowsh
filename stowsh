@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 _runcommands() {
-    local prefix=''
     if [[ $DRYRUN == 1 ]] || [[ $VERBOSE -gt 1 ]]; then
         echo "$@"
     fi
@@ -96,10 +95,10 @@ stowsh_uninstall() {
     files="$($findcmd . -type f -or -type l | sed "s|./||")"
     for f in $files ; do
         local targetf="$target/$f"
-        if [[ $($rpcmd "$targetf") == $(realpath "$f") ]] ; then
+        if [[ $($rpcmd "$targetf") == $($rpcmd "$f") ]] ; then
             commands+=("rm '$targetf'")
         elif [[ -f "$targetf" ]] ; then
-            echoerr "$targetf does not point to to $(realpath "$f")."
+            echoerr "$targetf does not point to to $($rpcmd "$f")."
             if [[ ! $SKIP -eq 1 ]]; then
                 echoerr "Aborting. Rerun with the -s flag to skip errors.";
                 return
