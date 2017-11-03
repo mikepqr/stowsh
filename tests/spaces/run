@@ -3,6 +3,7 @@
 stowsh=../../stowsh
 
 fail=0
+mkdir -p "uninstalled"
 rm -rf "dest"
 cp -r "uninstalled" "dest"
 $stowsh -vv -t "dest" "pkg"
