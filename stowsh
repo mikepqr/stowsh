@@ -59,16 +59,13 @@ stowsh_install() {
     target=$( "$rpcmd" "${2-$PWD}" )
     local commands=()
 
-    (
     cd "$pkg" || return 1
-    dirs="$($findcmd . -mindepth 1 -type d | sed "s|./||")"
-    for d in $dirs ; do
-        commands+=("mkdir -p '$target/$d'")
-    done
 
-    local files
-    files="$($findcmd . -type f -or -type l | sed "s|./||")"
-    for f in $files ; do
+    while IFS= read -r -d '' d; do
+        commands+=("mkdir -p '$target/$d'")
+    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|./||")
+
+    while IFS= read -r -d '' f; do
         local targetf="$target/$f"
         local thisdir
         thisdir=$(dirname "$targetf")
@@ -83,11 +80,11 @@ stowsh_install() {
                 return
             fi
         fi
-    done
+    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|./||")
+
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
     done;
-    )
 }
 
 stowsh_uninstall() {
@@ -97,11 +94,9 @@ stowsh_uninstall() {
     target=$( "$rpcmd" "${2-$PWD}" )
     local commands=()
 
-    (
     cd "$pkg" || return 1
-    local files
-    files="$($findcmd . -type f -or -type l | sed "s|./||")"
-    for f in $files ; do
+
+    while IFS= read -r -d '' f; do
         local targetf="$target/$f"
         if [[ $($rpcmd "$targetf") == $($rpcmd "$f") ]] ; then
             commands+=("rm '$targetf'")
@@ -118,16 +113,15 @@ stowsh_uninstall() {
                 return
             fi
         fi
-    done
+    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|./||")
 
-    dirs="$($findcmd . -mindepth 1 -type d | sed "s|./||")"
-    for d in $dirs ; do
+    while IFS= read -r -d '' d; do
         commands+=("[[ -d '$target/$d' ]] && $findcmd '$target/$d' -type d -empty -delete")
-    done
+    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|./||")
+
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
     done;
-    )
 }
 
 stowsh_help() {
