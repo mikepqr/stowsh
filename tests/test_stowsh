@@ -3,8 +3,10 @@
 cd "$(dirname "$0")" || exit
 tests="$(find . -maxdepth 1 ! -name '.*' -type d | sed "s|./||")"
 
+anyfail=0
 for test in $tests ; do
     echo "$test"
     (cd "$test" && ./run)
+    ((anyfail= $anyfail || $? ))
 done
-
+exit $anyfail

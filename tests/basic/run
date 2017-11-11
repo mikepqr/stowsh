@@ -11,7 +11,9 @@ $stowsh -vv -D -t "dest" "pkg"
 diff -qr "dest" "uninstalled" || fail=1
 if [[ $fail == 1 ]] ; then
     echo "FAIL"
+    exit 1
 else
     echo "OK"
     rm -rf "dest"
+    exit 0
 fi
