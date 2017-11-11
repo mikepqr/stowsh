@@ -1,0 +1,5 @@
+before_install:
+    - wget http://ftp.gnu.org/gnu/coreutils/coreutils-8.28.tar.xz && tar xf coreutils-8.28.tar.xz
+    - pushd coreutils-8.28 && ./configure && make && sudo make install && popd
+script:
+    - cd tests && ./test_stowsh
