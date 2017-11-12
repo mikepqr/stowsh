@@ -20,10 +20,10 @@ them with `brew install findutils coreutils`.
 
 Unfortunately older Debian-based systems (including Ubuntu Trusty 14.04) do not
 include the GNU implementation of `realpath` in their coreutils package. See
-[stowsh on Ubuntu Trusty 14.04](#stowsh-on-ubuntu-trusty-1404) for a solution.
+[below](#stowsh-on-ubuntu-trusty-1404) for a solution.
 
 I would welcome PRs to [remove these dependencies and replace them with POSIX
-shell commands](https://github.com/williamsmj/stowsh/issues/14)!).
+shell commands](https://github.com/williamsmj/stowsh/issues/14)!
 
 ## Quickstart
 
@@ -161,13 +161,12 @@ $ tree -a -I '.dotfiles'
 ## stowsh on Ubuntu Trusty 14.04
 
 Older Debian-based systems (including Ubuntu Trusty 14.04) do not include the
-GNU implementation of `realpath` in their coreutils package. Travis CI is among
-the services that still uses this operating system.
+GNU implementation of `realpath` in their coreutils package.
 
-Assuming you aren't able to switch operating system, you need to install a
-newer version of coreutils. coreutils contains many fundamental utilities (cut,
-true, kill, etc.), and it's probably not a good idea to upgrade the system
-version.
+Assuming you aren't able to switch operating system (e.g. you're using Travis
+CI), you need to install a newer version of coreutils. coreutils contains many
+fundamental utilities (cut, true, kill, etc.), and it's probably not a good
+idea to upgrade the system version.
 
 The simplest solution is to install coreutils with a prefix:
 
