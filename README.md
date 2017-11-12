@@ -1,5 +1,7 @@
 # stowsh
 
+[![Build Status](https://travis-ci.org/williamsmj/stowsh.svg?branch=master)](https://travis-ci.org/williamsmj/stowsh)
+
 A shell script to install and uninstall dotfiles using symlinks.
 [`stow`](https://www.gnu.org/software/stow/) written in bash, in other words.
 
