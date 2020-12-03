@@ -1,13 +1,13 @@
 # stowsh
 
-[![Build Status](https://travis-ci.org/williamsmj/stowsh.svg?branch=master)](https://travis-ci.org/williamsmj/stowsh)
+[![Build Status](https://travis-ci.org/mikepqr/stowsh.svg?branch=master)](https://travis-ci.org/mikepqr/stowsh)
 
 A shell script to install and uninstall dotfiles using symlinks.
 [`stow`](https://www.gnu.org/software/stow/) written in bash, in other words.
 
 ## Installation
 
-Put [stowsh](https://raw.githubusercontent.com/williamsmj/stowsh/master/stowsh)
+Put [stowsh](https://raw.githubusercontent.com/mikepqr/stowsh/master/stowsh)
 in your path.
 
 ## Dependencies
@@ -23,7 +23,7 @@ include the GNU implementation of `realpath` in their coreutils package. See
 [below](#stowsh-on-ubuntu-trusty-1404) for a solution.
 
 I would welcome PRs to [remove these dependencies and replace them with POSIX
-shell commands](https://github.com/williamsmj/stowsh/issues/14)!
+shell commands](https://github.com/mikepqr/stowsh/issues/14)!
 
 ## Quickstart
 
@@ -92,7 +92,7 @@ directly.
 Or you may prefer to have multiple orthogonal packages that get installed by a
 script that uses `stowsh`. This allows you to install packages only if certain
 conditions are met. Here's an [example install script that uses
-stowsh](https://github.com/williamsmj/dotfiles/blob/master/install.sh).
+stowsh](https://github.com/mikepqr/dotfiles/blob/master/install.sh).
 
 If your needs go beyond this, there are many [fully-featured dotfiles
 managers](https://dotfiles.github.io/).
@@ -193,4 +193,4 @@ I'd rather not have Perl as a dependency.
 
 ## Author
 
-[Mike Lee Williams](https://github.com/williamsmj/). Issues and PRs welcome.
+[Mike Lee Williams](https://github.com/mikepqr/). Issues and PRs welcome.
