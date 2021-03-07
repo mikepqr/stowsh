@@ -63,7 +63,7 @@ stowsh_install() {
 
     while IFS= read -r -d '' d; do
         commands+=("mkdir -p '$target/$d'")
-    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|./||")
+    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|\./||g")
 
     while IFS= read -r -d '' f; do
         local targetf="$target/$f"
@@ -80,7 +80,7 @@ stowsh_install() {
                 return
             fi
         fi
-    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|./||")
+    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|\./||g")
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
@@ -113,11 +113,11 @@ stowsh_uninstall() {
                 return
             fi
         fi
-    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|./||")
+    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|\./||g")
 
     while IFS= read -r -d '' d; do
         commands+=("[[ -d '$target/$d' ]] && $findcmd '$target/$d' -type d -empty -delete")
-    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|./||")
+    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|\./||g")
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
