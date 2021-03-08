@@ -1,0 +1,25 @@
+#!/bin/bash
+
+stowsh=../../stowsh
+
+notingit=( 'pkg/not_in_git' 'pkg/also_not_in git' )
+
+fail=0
+mkdir -p "uninstalled"
+rm -rf "dest"
+cp -r "uninstalled" "dest"
+touch "${notingit[@]}"
+$stowsh -vv -g -t "dest" "pkg"
+diff -qr "dest" "installed" || fail=1
+$stowsh -vv -D -g -t "dest" "pkg"
+diff -qr "dest" "uninstalled" || fail=1
+
+rm "${notingit[@]}"
+if [[ $fail == 1 ]] ; then
+    echo "FAIL"
+    exit 1
+else
+    echo "OK"
+    rm -rf "dest"
+    exit 0
+fi
