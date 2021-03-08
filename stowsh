@@ -50,6 +50,36 @@ stowsh_setpaths() {
         deperr "GNU findutils"
         return 1
     fi
+    if [[ "${USEGIT}" -eq 1 ]]; then
+        flist="list_git_files"
+    else
+        flist="list_files"
+    fi
+}
+
+list_files() {
+    if [[ "$1" == "-d" ]];
+    then
+        $findcmd . -mindepth 1 -type d -printf "%P\0"
+    else
+        $findcmd . -type f -printf "%P\0" -or -type l -printf "%P\0"
+    fi
+}
+
+list_git_files() {
+    gitfiles=( `git ls-files` )
+    if [[ "${#gitfiles[@]}" == 0 ]]; then return; fi
+
+    if [[ "$1" == "-d" ]];
+    then
+        printf "%s\n" "${gitfiles[@]}" |\
+            xargs -n1 dirname |\
+            sort | uniq |\
+            sed '/^\.$/d' |\
+            tr '\n' '\0'
+    else
+        printf "%s\0" "${gitfiles[@]}"
+    fi
 }
 
 stowsh_install() {
@@ -63,7 +93,7 @@ stowsh_install() {
 
     while IFS= read -r -d '' d; do
         commands+=("mkdir -p '$target/$d'")
-    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|\./||g")
+    done < <($flist -d)
 
     while IFS= read -r -d '' f; do
         local targetf="$target/$f"
@@ -80,7 +110,7 @@ stowsh_install() {
                 return
             fi
         fi
-    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|\./||g")
+    done < <($flist)
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
@@ -113,11 +143,11 @@ stowsh_uninstall() {
                 return
             fi
         fi
-    done < <($findcmd . -type f -print0 -or -type l -print0 | sed "s|\./||g")
+    done < <($flist)
 
     while IFS= read -r -d '' d; do
         commands+=("[[ -d '$target/$d' ]] && $findcmd '$target/$d' -type d -empty -delete")
-    done < <($findcmd . -mindepth 1 -type d -print0 | sed "s|\./||g")
+    done < <($flist -d)
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
@@ -125,19 +155,20 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-v[v]] [-t TARGET] PACKAGES..."
+    echo "Usage: $0 [-D] [-n] [-s] [-g] [-v[v]] [-t TARGET] PACKAGES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
     UNINSTALL=0
     DRYRUN=0
     SKIP=0
+    USEGIT=0
     TARGET="$PWD"
     PACKAGES=()
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsnt:" opt; do
+            while getopts ":vhDsngt:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -150,6 +181,8 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                     s)  SKIP=1
                         ;;
                     v)  VERBOSE=$((VERBOSE + 1))
+                        ;;
+                    g)  USEGIT=1
                         ;;
                     t)  TARGET="$OPTARG"
                         ;;
