@@ -105,7 +105,7 @@ stowsh_install() {
             echoerr "$targetf already exists."
             if [[ ! $SKIP -eq 1 ]]; then
                 echoerr "Aborting. Rerun with the -s flag to skip errors."
-                return
+                return 1
             fi
         fi
     done < <($flist)
@@ -132,13 +132,13 @@ stowsh_uninstall() {
             echoerr "$targetf does not point to to $($rpcmd "$f")."
             if [[ ! $SKIP -eq 1 ]]; then
                 echoerr "Aborting. Rerun with the -s flag to skip errors."
-                return
+                return 1
             fi
         elif [[ ! -f "$targetf" ]]; then
             echoerr "$targetf does not exist. Nothing to do."
             if [[ ! $SKIP -eq 1 ]]; then
                 echoerr "Aborting. Rerun with the -s flag to skip errors."
-                return
+                return 1
             fi
         fi
     done < <($flist)
