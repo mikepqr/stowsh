@@ -16,11 +16,7 @@ in your path.
 coreutils implementation of `realpath` and GNU findutils.
 
 These are already installed on most Linux systems. On macOS you can install
-them with `brew install findutils coreutils`. 
-
-Unfortunately older Debian-based systems (including Ubuntu Trusty 14.04) do not
-include the GNU implementation of `realpath` in their coreutils package. See
-[below](#stowsh-on-ubuntu-trusty-1404) for a solution.
+them with `brew install findutils coreutils`.
 
 I would welcome PRs to [remove these dependencies and replace them with POSIX
 shell commands](https://github.com/mikepqr/stowsh/issues/14)!
@@ -157,33 +153,6 @@ $ tree -a -I '.dotfiles'
 └── .conf
     └── conf.cache
 ```
-
-## stowsh on Ubuntu Trusty 14.04
-
-Older Debian-based systems (including Ubuntu Trusty 14.04) do not include the
-GNU implementation of `realpath` in their coreutils package.
-
-Assuming you aren't able to switch operating system (e.g. you're using Travis
-CI), you need to install a newer version of coreutils. coreutils contains many
-fundamental utilities (cut, true, kill, etc.), and it's probably not a good
-idea to upgrade the system version.
-
-The simplest solution is to install coreutils with a prefix:
-
-```bash
-wget http://ftp.gnu.org/gnu/coreutils/coreutils-8.28.tar.xz
-tar xf coreutils-8.28.tar.xz
-cd coreutils-8.28
-./configure --program-prefix=g
-make && sudo make install
-```
-
-Built and installed like this `cut` (or any other coreutils command) will still
-be your operating system's regular `cut`, and `gcut` will be the new coreutils
-version you just installed.
-
-stowsh will look for `grealpath` and use it in preference to `realpath` if
-found.
 
 ## What's wrong with GNU stow?
 
