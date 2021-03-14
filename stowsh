@@ -89,6 +89,7 @@ stowsh_install() {
 
     cd "$pkg" || return 1
 
+    mkdir -p "$target"
     while IFS= read -r -d '' d; do
         commands+=("mkdir -p '$target/$d'")
     done < <($flist -d)
