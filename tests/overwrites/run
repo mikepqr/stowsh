@@ -1,0 +1,39 @@
+#!/bin/bash
+
+stowsh=../../stowsh
+
+fail=0
+rm -rf "dest"
+cp -r "uninstalled" "dest"
+
+# This block verifies the claim "When installing a package stowsh will never
+# overwrite existing files."
+#
+# This should fail because .bash_profile already exists at dest
+$stowsh -vv -t "dest" "pkg" && fail=1
+# This file should not exist because the previous command should not have set up
+# any links
+[ -f "dest/.vimrc" ] && fail=1
+
+# This should now work thanks to -s
+$stowsh -vv -s -t "dest" "pkg" || fail=1
+diff -qr "dest" "installed" || fail=1
+
+# This block verifies the claim "When unsintalling a package stowsh will never
+# delete files that are not symlinks to the expected place in the package."
+# This should fail because the existing .bash_profile is not a link to the pkg
+# .bash_profile
+$stowsh -vv -D -t "dest" "pkg" && fail=1
+
+# This should now work thanks to -s
+$stowsh -vv -s -D -t "dest" "pkg" || fail=1
+diff -qr "dest" "uninstalled" || fail=1
+
+if [[ $fail == 1 ]]; then
+    echo "FAIL"
+    exit 1
+else
+    echo "OK"
+    rm -rf "dest"
+    exit 0
+fi

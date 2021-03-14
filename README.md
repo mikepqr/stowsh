@@ -68,8 +68,8 @@ Usage: stowsh [-D] [-n] [-s] [-g] [-v[v]] [-t TARGET] PACKAGES...
  - `-s` skip (skip errors rather than abort)
 
 When installing a package `stowsh` will never overwrite existing files. When
-unsintalling a package `stowsh` will never delete files that are not symlinks to
-the expected place in the package.
+uninstalling a package `stowsh` will never delete files that are not symlinks
+to the expected place in the package.
 
 By default `stowsh` will abort without making _any_ changes if either of these
 errors occurs. This is done to avoid being left with a broken half installed
