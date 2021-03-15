@@ -10,7 +10,7 @@ _runcommands() {
 }
 
 echoerr() {
-    printf "%s\n" "$*" >&2;
+    printf "%s\n" "$*" >&2
 }
 
 deperr() {
@@ -18,7 +18,7 @@ deperr() {
 }
 
 isgnu() {
-    if $1 --version >/dev/null 2>&1 ; then
+    if $1 --version >/dev/null 2>&1; then
         return 1
     else
         return 0
@@ -58,8 +58,7 @@ stowsh_setpaths() {
 }
 
 list_files() {
-    if [[ "$1" == "-d" ]];
-    then
+    if [[ "$1" == "-d" ]]; then
         $findcmd . -mindepth 1 -type d -printf "%P\0"
     else
         $findcmd . -type f -printf "%P\0" -or -type l -printf "%P\0"
@@ -67,15 +66,14 @@ list_files() {
 }
 
 list_git_files() {
-    gitfiles=( `git ls-files` )
+    gitfiles=($(git ls-files))
     if [[ "${#gitfiles[@]}" == 0 ]]; then return; fi
 
-    if [[ "$1" == "-d" ]];
-    then
-        printf "%s\n" "${gitfiles[@]}" |\
-            xargs -n1 dirname |\
-            sort | uniq |\
-            sed '/^\.$/d' |\
+    if [[ "$1" == "-d" ]]; then
+        printf "%s\n" "${gitfiles[@]}" |
+            xargs -n1 dirname |
+            sort | uniq |
+            sed '/^\.$/d' |
             tr '\n' '\0'
     else
         printf "%s\0" "${gitfiles[@]}"
@@ -86,7 +84,7 @@ stowsh_install() {
     stowsh_setpaths || return 1
     local pkg=$1
     local target
-    target=$( "$rpcmd" "${2-$PWD}" )
+    target=$("$rpcmd" "${2-$PWD}")
     local commands=()
 
     cd "$pkg" || return 1
@@ -101,12 +99,12 @@ stowsh_install() {
         thisdir=$(dirname "$targetf")
         local relative
         relative=$($rpcmd "$f" --relative-to="$thisdir" --canonicalize-missing)
-        if [[ ! -f "$targetf" ]] ; then
+        if [[ ! -f "$targetf" ]]; then
             commands+=("ln -s '$relative' '$targetf'")
         else
             echoerr "$targetf already exists."
             if [[ ! $SKIP -eq 1 ]]; then
-                echoerr "Aborting. Rerun with the -s flag to skip errors.";
+                echoerr "Aborting. Rerun with the -s flag to skip errors."
                 return
             fi
         fi
@@ -114,32 +112,32 @@ stowsh_install() {
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
-    done;
+    done
 }
 
 stowsh_uninstall() {
     stowsh_setpaths || return 1
     local pkg=$1
     local target
-    target=$( "$rpcmd" "${2-$PWD}" )
+    target=$("$rpcmd" "${2-$PWD}")
     local commands=()
 
     cd "$pkg" || return 1
 
     while IFS= read -r -d '' f; do
         local targetf="$target/$f"
-        if [[ $($rpcmd "$targetf") == $($rpcmd "$f") ]] ; then
+        if [[ $($rpcmd "$targetf") == $($rpcmd "$f") ]]; then
             commands+=("rm '$targetf'")
-        elif [[ -f "$targetf" ]] ; then
+        elif [[ -f "$targetf" ]]; then
             echoerr "$targetf does not point to to $($rpcmd "$f")."
             if [[ ! $SKIP -eq 1 ]]; then
-                echoerr "Aborting. Rerun with the -s flag to skip errors.";
+                echoerr "Aborting. Rerun with the -s flag to skip errors."
                 return
             fi
-        elif [[ ! -f "$targetf" ]] ; then
+        elif [[ ! -f "$targetf" ]]; then
             echoerr "$targetf does not exist. Nothing to do."
             if [[ ! $SKIP -eq 1 ]]; then
-                echoerr "Aborting. Rerun with the -s flag to skip errors.";
+                echoerr "Aborting. Rerun with the -s flag to skip errors."
                 return
             fi
         fi
@@ -151,7 +149,7 @@ stowsh_uninstall() {
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
-    done;
+    done
 }
 
 stowsh_help() {
@@ -174,31 +172,38 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                         stowsh_help
                         exit 0
                         ;;
-                    D)  UNINSTALL=1
+                    D)
+                        UNINSTALL=1
                         ;;
-                    n)  DRYRUN=1
+                    n)
+                        DRYRUN=1
                         ;;
-                    s)  SKIP=1
+                    s)
+                        SKIP=1
                         ;;
-                    v)  VERBOSE=$((VERBOSE + 1))
+                    v)
+                        VERBOSE=$((VERBOSE + 1))
                         ;;
-                    g)  USEGIT=1
+                    g)
+                        USEGIT=1
                         ;;
-                    t)  TARGET="$OPTARG"
+                    t)
+                        TARGET="$OPTARG"
                         ;;
-                    *)  echo "'$OPTARG' is an invalid option/flag"
+                    *)
+                        echo "'$OPTARG' is an invalid option/flag"
                         exit 1
                         ;;
                 esac
             done
-            shift $((OPTIND-1))
+            shift $((OPTIND - 1))
         else
             PACKAGES+=("$1")
             shift
         fi
     done
 
-    if [[ ${#PACKAGES[@]} -eq 0 ]] ; then
+    if [[ ${#PACKAGES[@]} -eq 0 ]]; then
         stowsh_help
         exit 1
     fi
@@ -206,10 +211,10 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     for i in ${!PACKAGES[*]}; do
         pkg=${PACKAGES[$i]}
         if [[ $UNINSTALL -eq 1 ]]; then
-            if [[ $VERBOSE -gt 0 ]] ; then echoerr "Uninstalling $pkg from $TARGET" ; fi
+            if [[ $VERBOSE -gt 0 ]]; then echoerr "Uninstalling $pkg from $TARGET"; fi
             stowsh_uninstall "$pkg" "$TARGET"
         else
-            if [[ $VERBOSE -gt 0 ]] ; then echoerr "Installing $pkg to $TARGET" ; fi
+            if [[ $VERBOSE -gt 0 ]]; then echoerr "Installing $pkg to $TARGET"; fi
             stowsh_install "$pkg" "$TARGET"
         fi
     done
