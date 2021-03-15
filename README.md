@@ -56,19 +56,20 @@ directory, creating subdirectories as necessary.
 
 ```bash
 $ stowsh -h
-Usage: stowsh [-D] [-n] [-s] [-v[v]] [-t TARGET] PACKAGES...
+Usage: stowsh [-D] [-n] [-s] [-g] [-v[v]] [-t TARGET] PACKAGES...
 ```
 
 `TARGET` is the destination directory (current directory by default).
 
- - `-D` uninstall a package
+ - `-D` uninstall package(s)
  - `-n` dry-run (print what would happen, but don't do anything)
  - `-v` verbose (`-vv` is even more verbose)
+ - `-g` ignore files that are not tracked by git (uses `git ls-files`)
  - `-s` skip (skip errors rather than abort)
 
 When installing a package `stowsh` will never overwrite existing files. When
-unsintalling a package `stowsh` will never delete files that are not symlinks
-to the expected place in the package. 
+unsintalling a package `stowsh` will never delete files that are not symlinks to
+the expected place in the package.
 
 By default `stowsh` will abort without making _any_ changes if either of these
 errors occurs. This is done to avoid being left with a broken half installed

@@ -125,7 +125,7 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-v[v]] [-t TARGET] PACKAGES..."
+    echo "Usage: $0 [-D] [-n] [-s] [-g] [-v[v]] [-t TARGET] PACKAGES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
