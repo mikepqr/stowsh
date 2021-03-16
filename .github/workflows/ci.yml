@@ -8,18 +8,29 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+        fail-fast: false
+        matrix:
+            os: [ubuntu-latest, macos-latest]
     steps:
     - name: Check out repo
       uses: actions/checkout@v2
+    - name: Install coreutils and findutils
+      run: brew install coreutils findutils
+      if: ${{ matrix.os == 'macos-latest' }}
     - name: Run tests
-      run: cd tests && ./test_stowsh
+      run: |
+          cd tests
+          ./test_stowsh
   lint:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repo
       uses: actions/checkout@v2
     - name: Get shfmt
-      run: curl --silent --show-error --fail --location -o shfmt https://github.com/mvdan/sh/releases/download/v3.2.4/shfmt_v3.2.4_linux_amd64 && chmod +x shfmt
+      run: |
+          curl --silent --show-error --fail --location -o shfmt https://github.com/mvdan/sh/releases/download/v3.2.4/shfmt_v3.2.4_linux_amd64
+          chmod +x shfmt
     - name: Run shfmt
       run: ./shfmt -d -ci -i 4 stowsh
