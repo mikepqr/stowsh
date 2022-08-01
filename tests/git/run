@@ -15,11 +15,26 @@ $stowsh -vv -D -g -t "dest" "pkg"
 diff -qr "dest" "uninstalled" || fail=1
 
 rm "${notingit[@]}"
+# Test that different files won't be overwritten 
+echo 1 > pkg/file
+echo 2 > dest/file
+$stowsh -vv -D -g -t "dest" "pkg" && fail=1
+diff -qr "dest" "pkg" && fail=1
+# Test that different file will be moved and symlinked
+# if versioned by git
+git restore pkg/file
+$stowsh -vv -g -t "dest" "pkg" || fail=1
+diff -qr "dest" "pkg" || fail=1
+
 if [[ $fail == 1 ]] ; then
     echo "FAIL"
     exit 1
 else
-    echo "OK"
+    ls -l pkg
+    ls -l dest
     rm -rf "dest"
+    cat pkg/file
+    git restore pkg/file
+    echo "OK"
     exit 0
 fi
