@@ -99,6 +99,92 @@ git_writeable() {
     return 1
 }
 
+git_clean() {
+    local path="${1-.}"
+    local output
+    if output=$(cd "$path" && git status --porcelain --untracked-files=no) && [ -z "$output" ]; then
+        return 0; # Clean git, but may still have untracked files
+    else
+        return 1
+    fi
+}
+
+stowsh_add_to_pkg () {
+    # This function copies to package $1 the source file(s) at path $3
+    # The path $3 is given relative to $2 given by the -t TARGET option
+    # Returns 1 if operation failed.
+    #
+    stowsh_setpaths || exit 1
+    local pkg=$1
+    local target=$("$rpcmd" "${2-$PWD}")
+    local pkg_src="${3-.}"
+    local commands=()
+    local messages=()
+    local relative
+    local branch
+
+    if [[ -e "$pkg" && ! -d "$pkg" ]]; then
+        echoerr "The path '$pkg' exists and is not a directory! Aborting ..."
+        exit 1
+    fi
+    [[ ! -e "$pkg" ]] && mkdir -p "$pkg" && messages+=("Created new package main directory: '$pkg'")
+    if [[ "$USEGIT" -eq 1 ]] && ! git_clean "$pkg"; then
+        echoerr "Uncomitted changes or no git repository at" "$pkg" ". Aborting ..."
+    fi
+
+    while IFS= read -r -d '' f; do
+        local src_file
+        if [[ -z "$f" ]]; then
+            src_file="$pkg_src"
+        else
+            src_file="$pkg_src/$f"
+        fi
+        relative=$($rpcmd "$src_file" --relative-to="$target")
+        local pkg_target="$pkg/$relative"
+        local pkg_target_dir="$(dirname ""${pkg_target}"")"
+        if [[ -e "$pkg_target_dir" && ! -d "$pkg_target_dir" ]]; then
+            echoerr "The path '$pkg_target_dir' exists and is not a directory! Aborting ..."
+            # TODO : No clean-up of directories made so far
+            exit 1
+        fi
+        if [[ ! -e "$pkg_target_dir" ]]; then
+            mkdir -p "${pkg_target_dir}" || ( echoerr "Error creating directory" "${pkg_target_dir}" ; exit 1 )
+            messages+=("Created new package sub-directory:  '$pkg_target_dir'")
+        fi
+        if [[ ! -f "$pkg_target" ]]; then
+            commands+=("cp '$src_file' '$pkg_target'")
+            [[ "${USEGIT}" -eq 1 ]] && commands+=("git add '$pkg_target'")
+        else
+            local diff=1; [[ -f "$pkg_target" ]] && diff=$(diff -q "$pkg_target" "$src_file")
+            if [[ -z "$diff" ]]; then
+                messages+=("File '$pkg_target' already matches '$src_file'.")
+            else
+                if [[ "${USEGIT}" -eq 1 ]] ; then
+                    git_writeable "$pkg_target" || exit 1
+                    commands+=("cp -f '$src_file' '$pkg_target'")
+                    commands+=("git add '$pkg_target'")
+                    messages+=("Git-versioned file '$pkg_target' in has been staged with NEW CONTENTS from '$src_file'.")
+                    messages+=("Please review the diff and commit or revert any changes.")
+                else
+                    echoerr "$pkg_target already exists."
+                    if [[ ! $SKIP -eq 1 ]]; then
+                        $(cd $pkg ; git status >/dev/null 2>&1) || git_suggestion=" or -g for a more git-aware mode."
+                        echoerr "Aborting. Rerun with the -s flag to skip errors${git_suggestion}."
+                        return 1
+                    fi
+                fi
+            fi
+        fi
+    done < <(list_files "$pkg_src")
+
+    for cmd in "${commands[@]}"; do
+        _runcommands "$cmd"
+    done
+    for msg in "${messages[@]}"; do
+        echo stowsh: "$msg"
+    done
+}
+
 stowsh_install() {
     stowsh_setpaths || return 1
     local pkg=$1
@@ -191,7 +277,8 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-g] [-v[v]] [-t TARGET] PACKAGES..."
+    echo "Usage: $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] PACKAGES..."
+    echo "       $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] -a PACKAGE FILES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
@@ -199,13 +286,14 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     DRYRUN=0
     SKIP=0
     LINK_REPLACES_EQUALS=0
+    ADD_TO_PACKAGE=;
     USEGIT=0
     TARGET="$PWD"
-    PACKAGES=()
+    SOURCES=()
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsnrgt:" opt; do
+            while getopts ":vhDsnrgt:a:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -213,6 +301,7 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                         ;;
                     D)
                         UNINSTALL=1
+                        [[ ! -z "$ADD_TO_PACKAGE" ]] && echoerr "Options -a and -D may not be given together. Aborting..." && exit 1
                         ;;
                     n)
                         DRYRUN=1
@@ -232,6 +321,11 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                     t)
                         TARGET="$OPTARG"
                         ;;
+                    a)
+                        [[ ! -z "${ADD_TO_PACKAGE}" ]] && echoerr Only one -a add-package option may be supplied && exit 1
+                        ADD_TO_PACKAGE="$OPTARG"
+                        [[ "$UNINSTALL" -eq 1 ]] && echoerr "Options -a and -D may not be given together. Aborting..." && exit 1
+                        ;;
                     *)
                         echo "'$OPTARG' is an invalid option/flag"
                         exit 1
@@ -240,18 +334,25 @@ if [ "$0" = "$BASH_SOURCE" ]; then
             done
             shift $((OPTIND - 1))
         else
-            PACKAGES+=("$1")
+            SOURCES+=("$1")
             shift
         fi
     done
 
-    if [[ ${#PACKAGES[@]} -eq 0 ]]; then
+    if [[ ${#SOURCES[@]} -eq 0 ]]; then
         stowsh_help
         exit 1
     fi
 
-    for i in ${!PACKAGES[*]}; do
-        pkg=${PACKAGES[$i]}
+    if [[ ! -z "${ADD_TO_PACKAGE}" ]]; then
+        for i in ${!SOURCES[*]}; do
+            if [[ $VERBOSE -gt 0 ]]; then echoerr "Adding to ${ADD_TO_PACKAGE}: '${TARGET}' '${SOURCES[$i]}'"; fi
+            stowsh_add_to_pkg "${ADD_TO_PACKAGE}" "${TARGET}" "${SOURCES[$i]}"
+        done
+        exit 0
+    fi
+    for i in ${!SOURCES[*]}; do
+        pkg=${SOURCES[$i]}
         if [[ $UNINSTALL -eq 1 ]]; then
             if [[ $VERBOSE -gt 0 ]]; then echoerr "Uninstalling $pkg from $TARGET"; fi
             stowsh_uninstall "$pkg" "$TARGET"
