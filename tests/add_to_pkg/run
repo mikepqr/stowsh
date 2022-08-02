@@ -20,6 +20,7 @@ echo
 echo \#\# Test that we can grab the tree in src
 rm -rf "pkg"
 $stowsh -vv -t "src" -a "pkg" "src" || fail=1
+diff -qr "pkg" "src" || fail=1
 echo \#\# Report
 echo ${yellow}Listing src${normal}
 tree src
