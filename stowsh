@@ -51,33 +51,40 @@ stowsh_setpaths() {
         return 1
     fi
     if [[ "${USEGIT}" -eq 1 ]]; then
+        dlist="list_git_dirs"
         flist="list_git_files"
     else
+        dlist="list_dirs"
         flist="list_files"
     fi
 }
 
+list_dirs() {
+    local path="${1-.}"
+    $findcmd "${path}" -mindepth 1 -type d -printf "%P\0"
+}
+
 list_files() {
-    if [[ "$1" == "-d" ]]; then
-        $findcmd . -mindepth 1 -type d -printf "%P\0"
-    else
-        $findcmd . -type f -printf "%P\0" -or -type l -printf "%P\0"
-    fi
+    local path="${1-.}"
+    $findcmd "${path}" -type f -printf "%P\0" -or -type l -printf "%P\0"
+}
+
+list_git_dirs() {
+    local path="${1-.}"
+    gitfiles=($(git ls-files "$path"))
+    if [[ "${#gitfiles[@]}" == 0 ]]; then return; fi
+    printf "%s\n" "${gitfiles[@]}" |
+        xargs -n1 dirname |
+        sort | uniq |
+        sed '/^\.$/d' |
+        tr '\n' '\0'
 }
 
 list_git_files() {
-    gitfiles=($(git ls-files))
+    local path="${1-.}"
+    gitfiles=($(git ls-files "$path"))
     if [[ "${#gitfiles[@]}" == 0 ]]; then return; fi
-
-    if [[ "$1" == "-d" ]]; then
-        printf "%s\n" "${gitfiles[@]}" |
-            xargs -n1 dirname |
-            sort | uniq |
-            sed '/^\.$/d' |
-            tr '\n' '\0'
-    else
-        printf "%s\0" "${gitfiles[@]}"
-    fi
+    printf "%s\0" "${gitfiles[@]}"
 }
 
 git_writeable() {
@@ -105,7 +112,7 @@ stowsh_install() {
     mkdir -p "$target"
     while IFS= read -r -d '' d; do
         commands+=("mkdir -p '$target/$d'")
-    done < <($flist -d)
+    done < <($dlist)
 
     while IFS= read -r -d '' f; do
         local targetf="$target/$f"
@@ -176,7 +183,7 @@ stowsh_uninstall() {
 
     while IFS= read -r -d '' d; do
         commands+=("[[ -d '$target/$d' ]] && $findcmd '$target/$d' -type d -empty -delete")
-    done < <($flist -d)
+    done < <($dlist)
 
     for cmd in "${commands[@]}"; do
         _runcommands "$cmd"
