@@ -57,6 +57,13 @@ stowsh_setpaths() {
         dlist="list_dirs"
         flist="list_files"
     fi
+    if [[ "$OSTYPE" == "darwin"* || "$OSTYPE" == "freebsd"* ]]; then
+        _cp_keep_symlink="-P"
+        _cp_deref_symlink="-L"
+    else
+        _cp_keep_symlink="-d"
+        _cp_deref_symlink="-L"
+    fi
 }
 
 list_dirs() {
@@ -156,9 +163,9 @@ stowsh_add_to_pkg() {
         fi
         if [[ ! -f "$pkg_target" ]]; then
             if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]]; then
-                commands+=("cp -d '$src_file' '$pkg_target'")
+                commands+=("cp $_cp_keep_symlink '$src_file' '$pkg_target'")
             else
-                commands+=("cp '$src_file' '$pkg_target'")
+                commands+=("cp $_cp_deref_symlink '$src_file' '$pkg_target'")
             fi
             [[ "${USEGIT}" -eq 1 ]] && commands+=("git add '$pkg_target'")
         else
@@ -170,9 +177,9 @@ stowsh_add_to_pkg() {
                 if [[ "${USEGIT}" -eq 1 ]]; then
                     git_writeable "$pkg_target" || exit 1
                     if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]]; then
-                        commands+=("cp -d -f '$src_file' '$pkg_target'")
+                        commands+=("cp $_cp_keep_symlink -f '$src_file' '$pkg_target'")
                     else
-                        commands+=("cp -f '$src_file' '$pkg_target'")
+                        commands+=("cp $_cp_deref_symlink -f '$src_file' '$pkg_target'")
                     fi
                     commands+=("git add '$pkg_target'")
                     messages+=("Git-versioned file '$pkg_target' in has been staged with NEW CONTENTS from '$src_file'.")
