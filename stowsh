@@ -91,7 +91,7 @@ git_writeable() {
     # TODO: Consider if ignored files should be included here ..
     local output
     if output="$(git status --porcelain --ignored -u all ""$@"")" && [[ -z "$output" ]]; then
-        return 0;  # Safe to write to repo
+        return 0 # Safe to write to repo
     fi
     echoerr Target "$@" already in the git-repo with uncomitted changes. Aborting...
     echoerr Output of 'git status --ignored':
@@ -103,13 +103,13 @@ git_clean() {
     local path="${1-.}"
     local output
     if output=$(cd "$path" && git status --porcelain --untracked-files=no) && [ -z "$output" ]; then
-        return 0; # Clean git, but may still have untracked files
+        return 0 # Clean git, but may still have untracked files
     else
         return 1
     fi
 }
 
-stowsh_add_to_pkg () {
+stowsh_add_to_pkg() {
     # This function copies to package $1 the source file(s) at path $3
     # The path $3 is given relative to $2 given by the -t TARGET option
     # Returns 1 if operation failed.
@@ -148,24 +148,28 @@ stowsh_add_to_pkg () {
             exit 1
         fi
         if [[ ! -e "$pkg_target_dir" ]]; then
-            mkdir -p "${pkg_target_dir}" || ( echoerr "Error creating directory" "${pkg_target_dir}" ; exit 1 )
+            mkdir -p "${pkg_target_dir}" || (
+                echoerr "Error creating directory" "${pkg_target_dir}"
+                exit 1
+            )
             messages+=("Created new package sub-directory:  '$pkg_target_dir'")
         fi
         if [[ ! -f "$pkg_target" ]]; then
-            if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]] ; then
+            if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]]; then
                 commands+=("cp -d '$src_file' '$pkg_target'")
             else
                 commands+=("cp '$src_file' '$pkg_target'")
             fi
             [[ "${USEGIT}" -eq 1 ]] && commands+=("git add '$pkg_target'")
         else
-            local diff=1; [[ -f "$pkg_target" ]] && diff=$(diff -q "$pkg_target" "$src_file")
+            local diff=1
+            [[ -f "$pkg_target" ]] && diff=$(diff -q "$pkg_target" "$src_file")
             if [[ -z "$diff" ]]; then
                 messages+=("File '$pkg_target' already matches '$src_file'.")
             else
-                if [[ "${USEGIT}" -eq 1 ]] ; then
+                if [[ "${USEGIT}" -eq 1 ]]; then
                     git_writeable "$pkg_target" || exit 1
-                    if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]] ; then
+                    if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]]; then
                         commands+=("cp -d -f '$src_file' '$pkg_target'")
                     else
                         commands+=("cp -f '$src_file' '$pkg_target'")
@@ -176,7 +180,10 @@ stowsh_add_to_pkg () {
                 else
                     echoerr "$pkg_target already exists."
                     if [[ ! $SKIP -eq 1 ]]; then
-                        $(cd $pkg ; git status >/dev/null 2>&1) || git_suggestion=" or -g for a more git-aware mode."
+                        $(
+                            cd $pkg
+                            git status >/dev/null 2>&1
+                        ) || git_suggestion=" or -g for a more git-aware mode."
                         echoerr "Aborting. Rerun with the -s flag to skip errors${git_suggestion}."
                         return 1
                     fi
@@ -218,11 +225,12 @@ stowsh_install() {
         if [[ ! -f "$targetf" ]]; then
             commands+=("ln -s '$relative' '$targetf'")
         else
-            local diff=1; [[ "${LINK_REPLACES_EQUALS}" -eq 1 && -f $targetf ]] && diff=$(diff -q "$f" "$targetf")
+            local diff=1
+            [[ "${LINK_REPLACES_EQUALS}" -eq 1 && -f $targetf ]] && diff=$(diff -q "$f" "$targetf")
             if [[ -z "$diff" ]]; then
                 commands+=("ln -s -f '$relative' '$targetf'")
             else
-                if [[ "${USEGIT}" -eq 1 ]] ; then
+                if [[ "${USEGIT}" -eq 1 ]]; then
                     git_writeable "$f" || exit 1
                     commands+=("mv -f '$targetf' '$f'")
                     commands+=("ln -s '$relative' '$targetf'")
@@ -294,7 +302,7 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     DRYRUN=0
     SKIP=0
     LINK_REPLACES_EQUALS=0
-    ADD_TO_PACKAGE=;
+    ADD_TO_PACKAGE=
     ADD_LINKS_TO_PACKAGE=1
     USEGIT=0
     TARGET="$PWD"
