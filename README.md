@@ -1,18 +1,18 @@
-# Fork-Note! 
+# Fork-Note!
 
 This is a fork from mikepqr/stowsh which adds a few functions and it adds
 some functionality that the original might not wish to provide:
 
-1. A new `-a PACKAGE_DIR` option can be used to add files from a target into the
-   package directory. The full expected use of the `-a` option is 
-   `-a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...`, 
+1. A new `-a PACKAGE_DIR` option can be used to add files from a target into
+   the package directory. The full expected use of the `-a` option is
+   `-a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...`,
    where `SOURCEFILES...` are referenced from the current working directory in
    the shell.
- 
+
 2. On installation of a package when a file in the TARGET is encountered that
-   is identical to the corresponding file in PACKAGE, the PACKAGE version will 
+   is identical to the corresponding file in PACKAGE, the PACKAGE version will
    be overwritten by the TARGET and the TARGET will be convert to a symlink as
-   it would when no file was encountered. 
+   it would when no file was encountered.
 
 3. The `-g` option will now test the git status of package files, and if the
    repo is clean `-g` will:
@@ -21,11 +21,11 @@ some functionality that the original might not wish to provide:
      what was found in the target folder. The benefit of this is if you install
      a package somewhere and you want to see what the changes were you can
      afterwards use git diff tools in the package directory to check this,
-     and determine if you want to revert it or stage & commit some of the changes.     
+     and determine if you want to revert it or stage & commit some of the changes.
 
-   + When adding packages with `-g -a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...` it will
-     copy and overwrite revisioned files in PACKAGE_DIR with what it found in
-     the SOURCES.
+   + When adding to packages with `-g -a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...`
+     this will copy and overwrite git-revisioned files in PACKAGE_DIR with what
+     it found in the SOURCES.
 
 ---
 

@@ -137,6 +137,7 @@ stowsh_add_to_pkg() {
     [[ ! -e "$pkg" ]] && mkdir -p "$pkg" && messages+=("Created new package main directory: '$pkg'")
     if [[ "$USEGIT" -eq 1 ]] && ! git_clean "$pkg"; then
         echoerr "Uncomitted changes or no git repository at" "$pkg" ". Aborting ..."
+        exit 1
     fi
 
     while IFS= read -r -d '' f; do
@@ -162,7 +163,7 @@ stowsh_add_to_pkg() {
             messages+=("Created new package sub-directory:  '$pkg_target_dir'")
         fi
         if [[ ! -f "$pkg_target" ]]; then
-            if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]]; then
+            if [[ "$ADD_PKG_COPY_LINKS" -eq 1 ]]; then
                 commands+=("cp $_cp_keep_symlink '$src_file' '$pkg_target'")
             else
                 commands+=("cp $_cp_deref_symlink '$src_file' '$pkg_target'")
@@ -176,7 +177,7 @@ stowsh_add_to_pkg() {
             else
                 if [[ "${USEGIT}" -eq 1 ]]; then
                     git_writeable "$pkg_target" || exit 1
-                    if [[ "$ADD_LINKS_TO_PACKAGE" -eq 1 ]]; then
+                    if [[ "$ADD_PKG_COPY_LINKS" -eq 1 ]]; then
                         commands+=("cp $_cp_keep_symlink -f '$src_file' '$pkg_target'")
                     else
                         commands+=("cp $_cp_deref_symlink -f '$src_file' '$pkg_target'")
@@ -301,7 +302,7 @@ stowsh_uninstall() {
 
 stowsh_help() {
     echo "Usage: $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] PACKAGES..."
-    echo "       $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] -a PACKAGE FILES..."
+    echo "       $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-d] [-t TARGET] -a PACKAGE FILES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
@@ -310,14 +311,14 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     SKIP=0
     LINK_REPLACES_EQUALS=0
     ADD_TO_PACKAGE=
-    ADD_LINKS_TO_PACKAGE=1
+    ADD_PKG_COPY_LINKS=1
     USEGIT=0
     TARGET="$PWD"
     SOURCES=()
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsnrlgt:a:" opt; do
+            while getopts ":vhDsnrdgt:a:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -333,8 +334,8 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                     r)
                         LINK_REPLACES_EQUALS=1
                         ;;
-                    l)
-                        ADD_LINKS_TO_PACKAGE=0
+                    d) # --dereference
+                        ADD_PKG_COPY_LINKS=0
                         ;;
                     s)
                         SKIP=1
