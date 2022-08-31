@@ -116,6 +116,89 @@ git_clean() {
     fi
 }
 
+stowsh_list_status() {
+    # Compares the files in the source package and displays
+    # 1) Missing files
+    # 2) Files with different content
+    # 3) TODO: Check if target symlink points to package
+    #
+    # Returns 1 if operation failed.
+    stowsh_setpaths || exit 1
+    local pkg=$1
+    local target=$("$rpcmd" "${2-$PWD}")
+    local commands=()
+    local messages=()
+    local relative
+    local branch
+
+    if [[ -e "$pkg" && ! -d "$pkg" ]]; then
+        echoerr "The path '$pkg' exists and is not a directory! Aborting."
+        exit 1
+    fi
+    if [[ ! -e "$pkg" ]]; then
+        echoerr "The path '$pkg' does not exist! Aborting."
+        exit 1
+    fi
+    if [[ ! -d "$target" ]]; then
+        echoerr "The path '$target' is not a directory. Aborting."
+        exit 1
+    fi
+    if [[ "$USEGIT" -eq 1 ]] && ! git_clean "$pkg"; then
+        echoerr "Uncommitted changes or no git repository at" "$pkg"
+    fi
+
+    echo "Listing package status for $pkg/ at $($rpcmd "$target" -s --relative-to="$PWD")/"
+    local GS=""
+    [[ "${USEGIT}" -eq 1 ]] && GS="GS | "
+    messages+=("${GS}PACKAGE PATH | STATUS | TARGET PATH | TARGET TIMESTAMP")
+    while IFS= read -r -d '' f; do
+        local src_file
+        if [[ -z "$f" ]]; then
+            echoerr "ERROR 101 TODO"
+            exit 1
+        else
+            src_file="$pkg/$f"
+        fi
+
+        local relative=$($rpcmd "$src_file" -s --relative-to="$pkg")
+        local pkg_target="$target/$relative"
+        local tgt=$($rpcmd "$pkg_target" -s --relative-to="$target/..")
+        #echo pkg="$pkg" target="$target" f="$f" relative="$relative"
+        if [[ "${USEGIT}" -eq 1 ]]; then
+            gitstatus=$(cd "$pkg" && git status --porcelain "$f")
+            if [[ ! -z "${gitstatus}" ]]; then
+                gitstatus="${gitstatus:0:2} | "
+            else
+                gitstatus='  | '
+            fi
+        else
+            gitstatus=""
+        fi
+        local tgt_type=""
+        local src_type=""
+        [[ -L "${pkg_target}" ]] && tgt_type="(link)"
+        [[ -L "${src_file}" ]] && src_type="(link)"
+        if [[ ! -e "$pkg_target" ]]; then
+            messages+=("${gitstatus}""$src_file $src_type"" | missing | $tgt | ")
+        else
+            local newer=""
+            [[ "$src_file" -ot "$pkg_target" ]] && newer="newer"
+            local older=""
+            [[ "$src_file" -nt "$pkg_target" ]] && older="older"
+            local timeinfo="${newer}${older}"
+            if diff_result=$(diff -q "$src_file" "$pkg_target"); then
+                messages+=("${gitstatus}""$src_file"" | match | ""$tgt $tgt_type | ")
+            else
+                messages+=("${gitstatus}""$src_file"" | diff  | ""$tgt $tgt_type | $timeinfo ")
+            fi
+        fi
+    done < <(list_files "$pkg")
+    for cmd in "${commands[@]}"; do
+        echo _runcommands "$cmd"
+    done
+    printf '%s\n' "${messages[@]}" | column -t -s '|' -o '|'
+}
+
 stowsh_add_to_pkg() {
     # This function copies to package $1 the source file(s) at path $3
     # The path $3 is given relative to $2 given by the -t TARGET option
@@ -301,8 +384,8 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] PACKAGES..."
-    echo "       $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-d] [-t TARGET] -a PACKAGE FILES..."
+    echo "Usage: $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-l] [-t TARGET] PACKAGES..."
+    echo "       $0 [-d] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] -a PACKAGE FILES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
@@ -318,7 +401,7 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsnrdgt:a:" opt; do
+            while getopts ":vhDsnrdglt:a:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -346,6 +429,9 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                     g)
                         USEGIT=1
                         ;;
+                    l)
+                        LIST_PKG_STATUS=1
+                        ;;
                     t)
                         TARGET="$OPTARG"
                         ;;
@@ -371,7 +457,13 @@ if [ "$0" = "$BASH_SOURCE" ]; then
         stowsh_help
         exit 1
     fi
-
+    if [[ ! -z "${LIST_PKG_STATUS}" ]]; then
+        for i in ${!SOURCES[*]}; do
+            pkg=${SOURCES[$i]}
+            stowsh_list_status "$pkg" "$TARGET"
+        done
+        exit 0
+    fi
     if [[ ! -z "${ADD_TO_PACKAGE}" ]]; then
         for i in ${!SOURCES[*]}; do
             if [[ $VERBOSE -gt 0 ]]; then echoerr "Adding to ${ADD_TO_PACKAGE}: '${TARGET}' '${SOURCES[$i]}'"; fi
