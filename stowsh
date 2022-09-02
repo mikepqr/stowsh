@@ -321,7 +321,7 @@ stowsh_install() {
         local relative
         relative=$($rpcmd "$f" --relative-to="$thisdir" --canonicalize-missing)
 
-        if [[ ! -f "$targetf" ]]; then
+        if [[ ! -e "$targetf" ]]; then
             commands+=("ln -s '$relative' '$targetf'")
         else
             local diff=1
