@@ -109,6 +109,16 @@ git_writeable() {
     return 1
 }
 
+git_is_path_inside_repo() {
+    local path="${1-.}"
+    local output
+    if output=$(cd "$path" && git rev-parse --show-toplevel 2>&1 > /dev/null); then
+        return 0 # Path is in a git repo 
+    else
+        return 1
+    fi
+}
+
 git_clean() {
     local path="${1-.}"
     local output
@@ -221,10 +231,6 @@ stowsh_add_to_pkg() {
         exit 1
     fi
     [[ ! -e "$pkg" ]] && mkdir -p "$pkg" && messages+=("Created new package main directory: '$pkg'")
-    if [[ "$USEGIT" -eq 1 ]] && ! git_clean "$pkg"; then
-        echoerr "Uncomitted changes or no git repository at" "$pkg" ". Aborting ..."
-        exit 1
-    fi
 
     while IFS= read -r -d '' f; do
         local src_file
@@ -398,12 +404,13 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     ADD_TO_PACKAGE=
     ADD_PKG_COPY_LINKS=1
     USEGIT=0
+    CONTINUE_COMMIT=0
     TARGET="$PWD"
     SOURCES=()
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsnrdglt:a:" opt; do
+            while getopts ":vhDsnrdgclt:a:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -430,6 +437,9 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                         ;;
                     g)
                         USEGIT=1
+                        ;;
+                    c)
+                        CONTINUE_COMMIT=1
                         ;;
                     l)
                         LIST_PKG_STATUS=1
@@ -467,6 +477,16 @@ if [ "$0" = "$BASH_SOURCE" ]; then
         exit 0
     fi
     if [[ ! -z "${ADD_TO_PACKAGE}" ]]; then
+        if [[ "$USEGIT" -eq 1 ]]; then 
+            if ! git_is_path_inside_repo "${ADD_TO_PACKAGE}"; then
+                echoerr "No git repository at \'${ADD_TO_PACKAGE}\'. Aborting."
+                exit 1
+            fi
+            if ! git_clean "${ADD_TO_PACKAGE}" && ! [[ $CONTINUE_COMMIT -eq 1 ]]; then
+                echoerr "Unclean git repository at \'${ADD_TO_PACKAGE}\', without continue-commit (-c). Aborting ..."
+                exit 1
+            fi
+        fi
         for i in ${!SOURCES[*]}; do
             if [[ $VERBOSE -gt 0 ]]; then echoerr "Adding to ${ADD_TO_PACKAGE}: '${TARGET}' '${SOURCES[$i]}'"; fi
             stowsh_add_to_pkg "${ADD_TO_PACKAGE}" "${TARGET}" "${SOURCES[$i]}"
