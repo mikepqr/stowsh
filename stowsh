@@ -88,8 +88,11 @@ list_git_dirs() {
 }
 
 list_git_files() {
+    # list_git_files is a slight problem when there's a mix of untracked and tracked
+    # Adding the --others keyword allows the untracked to appear, which is a better
+    # default?
     local path="${1-.}"
-    gitfiles=($(git ls-files "$path"))
+    gitfiles=($(git ls-files -c -o "$path"))
     if [[ "${#gitfiles[@]}" == 0 ]]; then return; fi
     printf "%s\0" "${gitfiles[@]}"
 }
@@ -305,7 +308,6 @@ stowsh_install() {
     while IFS= read -r -d '' d; do
         commands+=("mkdir -p '$target/$d'")
     done < <($dlist)
-
     while IFS= read -r -d '' f; do
         local targetf="$target/$f"
         local thisdir
