@@ -7,7 +7,7 @@ some functionality that the original might not wish to provide:
    the package directory. The full expected use of the `-a` option is
    `-a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...`,
    where `SOURCEFILES...` are referenced from the current working directory in
-   the shell.
+   the shell, but are seen as relative to `TARGET_DIR`.
 
 2. On installation of a package when a file in the TARGET is encountered that
    is identical to the corresponding file in PACKAGE, the PACKAGE version will

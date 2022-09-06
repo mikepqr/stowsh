@@ -88,11 +88,11 @@ list_git_dirs() {
 }
 
 list_git_files() {
-    # list_git_files is a slight problem when there's a mix of untracked and tracked
-    # Adding the --others keyword allows the untracked to appear, which is a better
-    # default?
+    # list_git_files can be inconvenient when working on a new package in a repo,
+    # unless it also lists tracked/untracked files. The stowsh -u option controls
+    # $LIST_UNTRACKED which resolves to -o to list the untracked files.
     local path="${1-.}"
-    gitfiles=($(git ls-files -c -o "$path"))
+    gitfiles=($(git ls-files -c $LIST_UNTRACKED "$path"))
     if [[ "${#gitfiles[@]}" == 0 ]]; then return; fi
     printf "%s\0" "${gitfiles[@]}"
 }
@@ -112,8 +112,8 @@ git_writeable() {
 git_is_path_inside_repo() {
     local path="${1-.}"
     local output
-    if output=$(cd "$path" && git rev-parse --show-toplevel 2>&1 > /dev/null); then
-        return 0 # Path is in a git repo 
+    if output=$(cd "$path" && git rev-parse --show-toplevel 2>&1 >/dev/null); then
+        return 0 # Path is in a git repo
     else
         return 1
     fi
@@ -392,8 +392,8 @@ stowsh_uninstall() {
 }
 
 stowsh_help() {
-    echo "Usage: $0 [-D] [-n] [-s] [-g] [-r] [-v[v]] [-l] [-t TARGET] PACKAGES..."
-    echo "       $0 [-d] [-n] [-s] [-g] [-r] [-v[v]] [-t TARGET] -a PACKAGE FILES..."
+    echo "Usage: $0 [-D] [-n] [-s] [-g]      [-u] [-r] [-v[v]] [-l] [-t TARGET] PACKAGES..."
+    echo "       $0 [-d] [-n] [-s] [-g] [-c] [-u] [-r] [-v[v]] [-t TARGET] -a PACKAGE FILES..."
 }
 
 if [ "$0" = "$BASH_SOURCE" ]; then
@@ -404,13 +404,14 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     ADD_TO_PACKAGE=
     ADD_PKG_COPY_LINKS=1
     USEGIT=0
+    LIST_UNTRACKED=
     CONTINUE_COMMIT=0
     TARGET="$PWD"
     SOURCES=()
     while [[ "$@" ]]; do
         if [[ $1 =~ ^- ]]; then
             OPTIND=1
-            while getopts ":vhDsnrdgclt:a:" opt; do
+            while getopts ":vhDsnrdgcult:a:" opt; do
                 case $opt in
                     h)
                         stowsh_help
@@ -440,6 +441,9 @@ if [ "$0" = "$BASH_SOURCE" ]; then
                         ;;
                     c)
                         CONTINUE_COMMIT=1
+                        ;;
+                    u)
+                        LIST_UNTRACKED="--others --exclude-standard"
                         ;;
                     l)
                         LIST_PKG_STATUS=1
@@ -477,7 +481,7 @@ if [ "$0" = "$BASH_SOURCE" ]; then
         exit 0
     fi
     if [[ ! -z "${ADD_TO_PACKAGE}" ]]; then
-        if [[ "$USEGIT" -eq 1 ]]; then 
+        if [[ "$USEGIT" -eq 1 ]]; then
             if ! git_is_path_inside_repo "${ADD_TO_PACKAGE}"; then
                 echoerr "No git repository at \'${ADD_TO_PACKAGE}\'. Aborting."
                 exit 1
