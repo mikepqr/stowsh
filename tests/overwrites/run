@@ -6,10 +6,11 @@ fail=0
 rm -rf "dest"
 cp -r "uninstalled" "dest"
 
-# This block verifies the claim "When installing a package stowsh will never
-# overwrite existing files."
+# This block verifies that "When installing a package stowsh will not
+# overwrite existing files (unless they are equal or the contents can be
+# safely be kept for both files using git with the -g option)."
 #
-# This should fail because .bash_profile already exists at dest
+# This should fail because .bash_profile already exists at dest and the files differ
 $stowsh -vv -t "dest" "pkg" && fail=1
 # This file should not exist because the previous command should not have set up
 # any links

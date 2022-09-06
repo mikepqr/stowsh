@@ -2,24 +2,82 @@
 
 stowsh=../../stowsh
 
+fail=0
+fails=0
+
+red=""; green=""; normal="";
+[[ $(type -P tput) ]] &&
+  [[ "$(tput colors)" -ge 8 ]] &&
+  normal="$(tput sgr0)" &&
+  red="$(tput setaf 1)" &&
+  green="$(tput setaf 2)" &&
+  yellow="$(tput setaf 3)"
+
+FAIL="${red}FAIL${normal}"
+PASS="${green}PASS${normal}"
+
+_fail_report() {
+  if [[ $fail == 1 ]] ; then
+    echo $FAIL
+  else
+    echo $PASS
+  fi
+  fails=$(( $fails + $fail ))
+  fail=0
+}
+
+###
+
+# Test that files not in git won't be installed / uninstalled
+# (unless the -u option is applied = TODO)
 notingit=( 'pkg/not_in_git' 'pkg/also_not_in git' )
 
 fail=0
+rm -rf "uninstalled"
 mkdir -p "uninstalled"
 rm -rf "dest"
 cp -r "uninstalled" "dest"
 touch "${notingit[@]}"
+
 $stowsh -vv -g -t "dest" "pkg"
 diff -qr "dest" "installed" || fail=1
+_fail_report
+
 $stowsh -vv -D -g -t "dest" "pkg"
 diff -qr "dest" "uninstalled" || fail=1
+_fail_report
 
 rm "${notingit[@]}"
-if [[ $fail == 1 ]] ; then
-    echo "FAIL"
+# Test that different files won't be overwritten
+echo 1 > pkg/file
+echo 2 > dest/file
+
+$stowsh -vv -D -g -t "dest" "pkg" && fail=1
+_fail_report
+
+diff -qr "dest" "pkg" && fail=1
+_fail_report
+
+# Test that different file will be moved and symlinked
+# if versioned by git
+git restore pkg/file
+
+$stowsh -vv -g -t "dest" "pkg" || fail=1
+_fail_report
+
+diff -qr "dest" "pkg" || fail=1
+_fail_report
+
+if [[ $fails -ge 1 ]] ; then
+    echo $FAIL
     exit 1
 else
-    echo "OK"
+    ls -l pkg
+    ls -l dest
     rm -rf "dest"
+    cat pkg/file
+    git restore pkg/file
+    echo $PASS
     exit 0
 fi
+
