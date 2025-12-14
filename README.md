@@ -1,5 +1,8 @@
 # stowsh
 
+| :warning: This project is archived. I recommend [haunt](https://github.com/mikepqr/haunt) :warning: |
+|-|
+
 A shell script to install and uninstall dotfiles using symlinks.
 [`stow`](https://www.gnu.org/software/stow/) written in bash, in other words.
 
