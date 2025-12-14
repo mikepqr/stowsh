@@ -1,3 +1,43 @@
+# Fork note
+
+This is a fork from mikepqr/stowsh which adds a few functions and it adds
+some functionality that the original might not wish to provide:
+
+1. A new `-a PACKAGE_DIR` option can be used to add files from a target into
+   the package directory. The full expected use of the `-a` option is
+   `-a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...`,
+   where `SOURCEFILES...` are referenced from the current working directory in
+   the shell, but are seen as relative to `TARGET_DIR`.
+
+2. On installation of a package when a file in the TARGET is encountered that
+   is identical to the corresponding file in PACKAGE, the PACKAGE version will
+   be overwritten by the TARGET and the TARGET will be convert to a symlink as
+   it would when no file was encountered.
+
+3. The new `-l` option will print a simple report listing the files in
+   `SOURCEFILES...` and how each one matches to the files in the `TARGET_DIR`.
+   By swapping target and source one can also check if the target dir have files
+   that are missing in the source package. When given the `-l` option will exit
+   after printing the status information and no other action will be taken.
+
+4. The `-g` option will now test the git status of package files, and if the
+   repo is clean `-g` will:
+
+   + For installations `-g` will overwrite safely revisioned package files with
+     what was found in the target folder. The benefit of this is if you install
+     a package somewhere and you want to see what the changes were you can
+     afterwards use git diff tools in the package directory to check this,
+     and determine if you want to revert it or stage & commit some of the changes.
+
+   + When adding to packages with `-g -a PACKAGE_DIR -t TARGET_DIR SOURCEFILES...`
+     this will copy and overwrite git-revisioned files in PACKAGE_DIR with what
+     it found in the SOURCES.
+
+   + When used with `-l`, `-g` will additionally print the status characters for
+     the source package files as output by `git status --porcelain`.
+
+---
+
 # stowsh
 
 | :warning: This project is archived. I recommend [haunt](https://github.com/mikepqr/haunt) :warning: |
@@ -137,7 +177,7 @@ $ tree -a -I '.dotfiles'  # exclude ./.dotfiles from tree listing
     └── script2 -> ../.dotfiles/pkg2/bin/script2
 ```
 
-Things to note here: 
+Things to note here:
 
  - `~/bin` was created by `stowsh`. It's a real directory, not a link.
  - both `pkg1` and `pkg2` install files into `~/bin`
